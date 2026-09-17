@@ -1,0 +1,58 @@
+{
+  "dandeli": {
+    "1": { "month_name": "January", "suitability_score": 0.95, "climate_type": "Pleasant & Dry", "rainfall_level": "Low", "crowd_demand": "Moderate", "water_sports": true },
+    "2": { "month_name": "February", "suitability_score": 0.90, "climate_type": "Pleasant & Warm", "rainfall_level": "Low", "crowd_demand": "Moderate", "water_sports": true },
+    "3": { "month_name": "March", "suitability_score": 0.75, "climate_type": "Warm", "rainfall_level": "Low", "crowd_demand": "Low", "water_sports": true },
+    "4": { "month_name": "April", "suitability_score": 0.60, "climate_type": "Hot", "rainfall_level": "Low", "crowd_demand": "Low", "water_sports": false },
+    "5": { "month_name": "May", "suitability_score": 0.50, "climate_type": "Hot & Humid", "rainfall_level": "Moderate", "crowd_demand": "Low", "water_sports": false },
+    "6": { "month_name": "June", "suitability_score": 0.40, "climate_type": "Heavy Monsoon", "rainfall_level": "Monsoon", "crowd_demand": "Low", "water_sports": false, "advisory": "Rafting suspended due to high river currents" },
+    "7": { "month_name": "July", "suitability_score": 0.30, "climate_type": "Peak Monsoon", "rainfall_level": "Monsoon", "crowd_demand": "Low", "water_sports": false, "advisory": "Forest trails restricted due to heavy rain" },
+    "8": { "month_name": "August", "suitability_score": 0.35, "climate_type": "Heavy Monsoon", "rainfall_level": "Monsoon", "crowd_demand": "Low", "water_sports": false },
+    "9": { "month_name": "September", "suitability_score": 0.65, "climate_type": "Post-Monsoon Lush", "rainfall_level": "Moderate", "crowd_demand": "Low", "water_sports": true },
+    "10": { "month_name": "October", "suitability_score": 0.90, "climate_type": "Lush & Pleasant", "rainfall_level": "Low", "crowd_demand": "Moderate", "water_sports": true },
+    "11": { "month_name": "November", "suitability_score": 0.95, "climate_type": "Pleasant & Cool", "rainfall_level": "Low", "crowd_demand": "High", "water_sports": true },
+    "12": { "month_name": "December", "suitability_score": 1.00, "climate_type": "Cool & Ideal", "rainfall_level": "Low", "crowd_demand": "High", "water_sports": true }
+  },
+  "coorg": {
+    "1": { "month_name": "January", "suitability_score": 0.95, "climate_type": "Cool & Misty", "rainfall_level": "Low", "crowd_demand": "High" },
+    "2": { "month_name": "February", "suitability_score": 0.90, "climate_type": "Pleasant & Clear", "rainfall_level": "Low", "crowd_demand": "Moderate" },
+    "3": { "month_name": "March", "suitability_score": 0.85, "climate_type": "Pleasant (Coffee Blossom)", "rainfall_level": "Low", "crowd_demand": "Moderate" },
+    "4": { "month_name": "April", "suitability_score": 0.75, "climate_type": "Warm & Breezy", "rainfall_level": "Low", "crowd_demand": "Moderate" },
+    "5": { "month_name": "May", "suitability_score": 0.70, "climate_type": "Pre-Monsoon Showers", "rainfall_level": "Moderate", "crowd_demand": "Moderate" },
+    "6": { "month_name": "June", "suitability_score": 0.50, "climate_type": "Heavy Monsoon", "rainfall_level": "Monsoon", "crowd_demand": "Low" },
+    "7": { "month_name": "July", "suitability_score": 0.40, "climate_type": "Peak Monsoon", "rainfall_level": "Monsoon", "crowd_demand": "Low" },
+    "8": { "month_name": "August", "suitability_score": 0.45, "climate_type": "Heavy Monsoon", "rainfall_level": "Monsoon", "crowd_demand": "Low" },
+    "9": { "month_name": "September", "suitability_score": 0.75, "climate_type": "Post-Monsoon Greenery", "rainfall_level": "Moderate", "crowd_demand": "Low" },
+    "10": { "month_name": "October", "suitability_score": 0.90, "climate_type": "Pleasant & Refreshing", "rainfall_level": "Low", "crowd_demand": "Moderate" },
+    "11": { "month_name": "November", "suitability_score": 0.95, "climate_type": "Cool & Clear", "rainfall_level": "Low", "crowd_demand": "High" },
+    "12": { "month_name": "December", "suitability_score": 1.00, "climate_type": "Chilly & Ideal", "rainfall_level": "Low", "crowd_demand": "High" }
+  },
+  "hampi": {
+    "1": { "month_name": "January", "suitability_score": 1.00, "climate_type": "Pleasant & Sunny", "rainfall_level": "Low", "crowd_demand": "High" },
+    "2": { "month_name": "February", "suitability_score": 0.85, "climate_type": "Warm & Sunny", "rainfall_level": "Low", "crowd_demand": "Moderate" },
+    "3": { "month_name": "March", "suitability_score": 0.60, "climate_type": "Hot", "rainfall_level": "Low", "crowd_demand": "Low" },
+    "4": { "month_name": "April", "suitability_score": 0.35, "climate_type": "Very Hot (>40°C)", "rainfall_level": "Low", "crowd_demand": "Low", "advisory": "Midday exploration challenging due to intense rock heat" },
+    "5": { "month_name": "May", "suitability_score": 0.30, "climate_type": "Extreme Heat", "rainfall_level": "Low", "crowd_demand": "Low", "advisory": "Not recommended due to severe heat" },
+    "6": { "month_name": "June", "suitability_score": 0.50, "climate_type": "Warm with Showers", "rainfall_level": "Moderate", "crowd_demand": "Low" },
+    "7": { "month_name": "July", "suitability_score": 0.65, "climate_type": "Pleasant Showers", "rainfall_level": "Moderate", "crowd_demand": "Low" },
+    "8": { "month_name": "August", "suitability_score": 0.70, "climate_type": "Monsoon Greenery", "rainfall_level": "Moderate", "crowd_demand": "Low" },
+    "9": { "month_name": "September", "suitability_score": 0.80, "climate_type": "Moderate & Clear", "rainfall_level": "Low", "crowd_demand": "Low" },
+    "10": { "month_name": "October", "suitability_score": 0.90, "climate_type": "Pleasant", "rainfall_level": "Low", "crowd_demand": "Moderate" },
+    "11": { "month_name": "November", "suitability_score": 0.95, "climate_type": "Cool & Sunny (Hampi Utsav)", "rainfall_level": "Low", "crowd_demand": "High" },
+    "12": { "month_name": "December", "suitability_score": 1.00, "climate_type": "Cool & Sunny", "rainfall_level": "Low", "crowd_demand": "High" }
+  },
+  "goa": {
+    "1": { "month_name": "January", "suitability_score": 1.00, "climate_type": "Pleasant Beach Weather", "rainfall_level": "Low", "crowd_demand": "High" },
+    "2": { "month_name": "February", "suitability_score": 0.95, "climate_type": "Warm & Sunny", "rainfall_level": "Low", "crowd_demand": "High" },
+    "3": { "month_name": "March", "suitability_score": 0.80, "climate_type": "Warm & Humid", "rainfall_level": "Low", "crowd_demand": "Moderate" },
+    "4": { "month_name": "April", "suitability_score": 0.65, "climate_type": "Hot & Humid", "rainfall_level": "Low", "crowd_demand": "Moderate" },
+    "5": { "month_name": "May", "suitability_score": 0.55, "climate_type": "Pre-Monsoon Humid", "rainfall_level": "Moderate", "crowd_demand": "Low" },
+    "6": { "month_name": "June", "suitability_score": 0.40, "climate_type": "Heavy Monsoon", "rainfall_level": "Monsoon", "crowd_demand": "Low", "advisory": "Water sports and beach shacks closed" },
+    "7": { "month_name": "July", "suitability_score": 0.35, "climate_type": "Peak Monsoon", "rainfall_level": "Monsoon", "crowd_demand": "Low", "advisory": "Sea rough; swimming prohibited" },
+    "8": { "month_name": "August", "suitability_score": 0.45, "climate_type": "Lush Monsoon", "rainfall_level": "Monsoon", "crowd_demand": "Low" },
+    "9": { "month_name": "September", "suitability_score": 0.70, "climate_type": "Post-Monsoon Refreshing", "rainfall_level": "Moderate", "crowd_demand": "Low" },
+    "10": { "month_name": "October", "suitability_score": 0.85, "climate_type": "Sunny & Beach Ready", "rainfall_level": "Low", "crowd_demand": "Moderate" },
+    "11": { "month_name": "November", "suitability_score": 0.95, "climate_type": "Ideal Beach Weather", "rainfall_level": "Low", "crowd_demand": "High" },
+    "12": { "month_name": "December", "suitability_score": 1.00, "climate_type": "Peak Festive Season", "rainfall_level": "Low", "crowd_demand": "High" }
+  }
+}

@@ -1,0 +1,322 @@
+[
+  {
+    "id": "dandeli_kali_rafting",
+    "destination_id": "dandeli",
+    "name": "Kali River White Water Rafting",
+    "category": "adventure",
+    "description": "Exhilarating 9 km white water rafting along Grade III & IV rapids on the pristine Kali River amidst lush Western Ghats forest.",
+    "latitude": 15.2361,
+    "longitude": 74.6173,
+    "average_visit_duration": 3.5,
+    "entry_fee": 1350.0,
+    "popularity_score": 0.98,
+    "rating": 4.8,
+    "opening_time": "08:30:00",
+    "closing_time": "17:00:00",
+    "best_time_to_visit": "Morning (09:00 AM)",
+    "tags": ["adventure", "water_sports", "river", "rafting"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.80, "4": 0.50, "5": 0.30,
+      "6": 0.10, "7": 0.00, "8": 0.00, "9": 0.70, "10": 0.90, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.7, "weekend_factor": 1.4 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Geocoding Node / Kali River Base Camp",
+      "timings_source": "Karnataka Forest Department Eco-Tourism Rafting Timings",
+      "fee_source": "Standardized Kali River Rafting Operators Union Tariff 2024 (INR 1350/person)",
+      "duration_estimation_method": "Curated empirical duration including safety briefing, gearing, and 9km river run",
+      "popularity_source": "Normalized traveler activity index from Karnataka Tourism records",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "dandeli_syntheri_rocks",
+    "destination_id": "dandeli",
+    "name": "Syntheri Rocks",
+    "category": "nature",
+    "description": "Monolithic 300-foot granite rock formation hollowed by the Kaneri River torrents with natural cavernous fissures and bee hives.",
+    "latitude": 15.2105,
+    "longitude": 74.5230,
+    "average_visit_duration": 2.0,
+    "entry_fee": 30.0,
+    "popularity_score": 0.90,
+    "rating": 4.5,
+    "opening_time": "08:30:00",
+    "closing_time": "17:00:00",
+    "best_time_to_visit": "Afternoon",
+    "tags": ["nature", "geology", "river", "photography"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.75, "4": 0.60, "5": 0.50,
+      "6": 0.30, "7": 0.20, "8": 0.25, "9": 0.65, "10": 0.90, "11": 0.95, "12": 0.95
+    },
+    "crowd_heuristics": { "weekday_factor": 0.6, "weekend_factor": 1.2 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Node / Survey of India Dandeli Topo Map",
+      "timings_source": "Karnataka Forest Department Entry Checkpost",
+      "fee_source": "Karnataka Forest Department Entry Tariff (INR 30/person)",
+      "duration_estimation_method": "Curated empirical duration for stairs descent, river viewpoint, and return walk",
+      "popularity_source": "State tourism regional survey",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "dandeli_wildlife_sanctuary",
+    "destination_id": "dandeli",
+    "name": "Dandeli Wildlife Sanctuary & Safari",
+    "category": "adventure",
+    "description": "Protected deciduous reserve harboring black panthers, barking deer, Indian hornbills, elephants, and leopards.",
+    "latitude": 15.2450,
+    "longitude": 74.5800,
+    "average_visit_duration": 2.5,
+    "entry_fee": 450.0,
+    "popularity_score": 0.92,
+    "rating": 4.6,
+    "opening_time": "06:00:00",
+    "closing_time": "18:00:00",
+    "best_time_to_visit": "Early Morning Safari (06:00 AM)",
+    "tags": ["wildlife", "safari", "nature", "birdwatching"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.80, "4": 0.70, "5": 0.60,
+      "6": 0.30, "7": 0.20, "8": 0.20, "9": 0.50, "10": 0.85, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.8, "weekend_factor": 1.5 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Boundary / Forest Dept Kulgi Camp",
+      "timings_source": "Karnataka Forest Department Wildlife Safari Schedule",
+      "fee_source": "Official Safari Jeep Entry Rate (INR 450/person)",
+      "duration_estimation_method": "Official scheduled safari circuit duration (2.5 hours)",
+      "popularity_source": "Karnataka Forest Department visitor registry records",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "official_safari_schedule"
+  },
+  {
+    "id": "dandeli_supa_dam",
+    "destination_id": "dandeli",
+    "name": "Supa Dam Viewpoint",
+    "category": "nature",
+    "description": "Massive 101-meter-high concrete gravity dam built across the Kali River offering panoramic reservoir views.",
+    "latitude": 15.2750,
+    "longitude": 74.5380,
+    "average_visit_duration": 1.0,
+    "entry_fee": 0.0,
+    "popularity_score": 0.80,
+    "rating": 4.3,
+    "opening_time": "08:00:00",
+    "closing_time": "18:00:00",
+    "best_time_to_visit": "Sunset",
+    "tags": ["nature", "dam", "scenic_view", "sunset"],
+    "seasonal_scores": {
+      "1": 0.90, "2": 0.85, "3": 0.70, "4": 0.60, "5": 0.50,
+      "6": 0.60, "7": 0.70, "8": 0.80, "9": 0.85, "10": 0.90, "11": 0.90, "12": 0.90
+    },
+    "crowd_heuristics": { "weekday_factor": 0.5, "weekend_factor": 1.1 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Geographic Node Supa Reservoir",
+      "timings_source": "Public Viewpoint Hours (KPCL Security)",
+      "fee_source": "Public Free Viewpoint (INR 0)",
+      "duration_estimation_method": "Curated empirical average for photography and viewpoint walking",
+      "popularity_source": "Regional tourism directory",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "dandeli_kavala_caves",
+    "destination_id": "dandeli",
+    "name": "Kavala Caves",
+    "category": "adventure",
+    "description": "Ancient prehistoric limestone caves with stalagmite formations, reached via a dense jungle trek and a 375-step descent.",
+    "latitude": 15.1950,
+    "longitude": 74.4750,
+    "average_visit_duration": 3.0,
+    "entry_fee": 50.0,
+    "popularity_score": 0.84,
+    "rating": 4.4,
+    "opening_time": "08:00:00",
+    "closing_time": "16:00:00",
+    "best_time_to_visit": "Morning (09:00 AM)",
+    "tags": ["adventure", "caving", "trekking", "heritage"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.70, "4": 0.50, "5": 0.30,
+      "6": 0.10, "7": 0.00, "8": 0.00, "9": 0.40, "10": 0.80, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.5, "weekend_factor": 1.2 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Node / Dandeli Forest Division Trail",
+      "timings_source": "Forest Department Eco-Trek Guide Entry Post",
+      "fee_source": "Forest Eco-development Committee Ticket (INR 50/person)",
+      "duration_estimation_method": "Curated empirical duration for 3km jungle trek, stair climb, and cave crawl",
+      "popularity_source": "Karnataka Eco-Tourism Board reports",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "dandeli_shiroli_peak",
+    "destination_id": "dandeli",
+    "name": "Shiroli Peak Sunset Point",
+    "category": "nature",
+    "description": "Highest vantage point in the Dandeli region offering panoramic vistas over the Sahyadri mountain ranges.",
+    "latitude": 15.2300,
+    "longitude": 74.5900,
+    "average_visit_duration": 1.5,
+    "entry_fee": 20.0,
+    "popularity_score": 0.86,
+    "rating": 4.5,
+    "opening_time": "06:00:00",
+    "closing_time": "18:30:00",
+    "best_time_to_visit": "Sunset (05:30 PM)",
+    "tags": ["nature", "sunset", "viewpoint", "trekking"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.80, "4": 0.70, "5": 0.60,
+      "6": 0.40, "7": 0.30, "8": 0.40, "9": 0.75, "10": 0.90, "11": 0.95, "12": 0.95
+    },
+    "crowd_heuristics": { "weekday_factor": 0.5, "weekend_factor": 1.3 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Topographic Benchmark",
+      "timings_source": "Dandeli Wildlife Division Gate",
+      "fee_source": "Forest Gate Entry Fee (INR 20/person)",
+      "duration_estimation_method": "Curated empirical average for vehicle ascent and sunset viewing",
+      "popularity_source": "District tourism records",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "dandeli_crocodile_park",
+    "destination_id": "dandeli",
+    "name": "Crocodile Park Dandeli",
+    "category": "nature",
+    "description": "Government-recognized sanctuary on the Kali riverbanks dedicated to observing mugger crocodiles basking in natural habitats.",
+    "latitude": 15.2410,
+    "longitude": 74.6220,
+    "average_visit_duration": 1.0,
+    "entry_fee": 25.0,
+    "popularity_score": 0.78,
+    "rating": 4.1,
+    "opening_time": "09:00:00",
+    "closing_time": "18:00:00",
+    "best_time_to_visit": "Morning (10:00 AM)",
+    "tags": ["nature", "wildlife", "crocodiles", "family"],
+    "seasonal_scores": {
+      "1": 0.90, "2": 0.90, "3": 0.85, "4": 0.75, "5": 0.60,
+      "6": 0.40, "7": 0.30, "8": 0.40, "9": 0.70, "10": 0.85, "11": 0.90, "12": 0.95
+    },
+    "crowd_heuristics": { "weekday_factor": 0.6, "weekend_factor": 1.2 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Node / Dandeli Municipal Coordinates",
+      "timings_source": "Park Entry Notice Board",
+      "fee_source": "Municipality Entry Tariff (INR 25/person)",
+      "duration_estimation_method": "Curated empirical duration for riverbank viewing platform tour",
+      "popularity_source": "Local tourism guide listing",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "dandeli_moulangi_eco_park",
+    "destination_id": "dandeli",
+    "name": "Moulangi Eco Park",
+    "category": "nature",
+    "description": "Scenic wilderness spot surrounded by dense bamboo forests, large rock outcrops, and natural river pools ideal for picnics.",
+    "latitude": 15.2280,
+    "longitude": 74.6520,
+    "average_visit_duration": 1.5,
+    "entry_fee": 20.0,
+    "popularity_score": 0.75,
+    "rating": 4.2,
+    "opening_time": "09:00:00",
+    "closing_time": "18:00:00",
+    "best_time_to_visit": "Afternoon",
+    "tags": ["nature", "picnic", "bamboo_forest", "river"],
+    "seasonal_scores": {
+      "1": 0.90, "2": 0.85, "3": 0.75, "4": 0.60, "5": 0.50,
+      "6": 0.35, "7": 0.30, "8": 0.35, "9": 0.70, "10": 0.85, "11": 0.90, "12": 0.90
+    },
+    "crowd_heuristics": { "weekday_factor": 0.5, "weekend_factor": 1.1 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Node Moulangi Forest Camp",
+      "timings_source": "Eco-Park Notice Board",
+      "fee_source": "Forest Eco-Development Ticket (INR 20/person)",
+      "duration_estimation_method": "Curated empirical average for trail walk and river viewpoint",
+      "popularity_source": "Regional tourism records",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "dandeli_sykes_point",
+    "destination_id": "dandeli",
+    "name": "Sykes Point River Valley View",
+    "category": "nature",
+    "description": "Breathtaking deep gorge vantage point where River Nagzari converges with River Kali amidst dramatic precipices.",
+    "latitude": 15.2530,
+    "longitude": 74.4560,
+    "average_visit_duration": 1.5,
+    "entry_fee": 0.0,
+    "popularity_score": 0.87,
+    "rating": 4.7,
+    "opening_time": "09:00:00",
+    "closing_time": "17:00:00",
+    "best_time_to_visit": "Afternoon (03:30 PM)",
+    "tags": ["nature", "gorge", "river_valley", "panoramic_views"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.80, "4": 0.65, "5": 0.55,
+      "6": 0.40, "7": 0.30, "8": 0.35, "9": 0.75, "10": 0.90, "11": 0.95, "12": 0.95
+    },
+    "crowd_heuristics": { "weekday_factor": 0.5, "weekend_factor": 1.2 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Geographic Landmark Node / Ambikanagar KPCL Survey",
+      "timings_source": "KPCL Security Gate Schedule",
+      "fee_source": "Free Viewpoint with KPCL Security Gate Pass (INR 0)",
+      "duration_estimation_method": "Curated empirical duration for gorge panorama and bird watching",
+      "popularity_source": "Uttara Kannada District Tourism Directory",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "dandeli_anshi_trail",
+    "destination_id": "dandeli",
+    "name": "Kali Tiger Reserve Nature Trail",
+    "category": "adventure",
+    "description": "Guided forest canopy trek through pristine evergreen rainforest in the Anshi / Kali Tiger Reserve bio-corridor.",
+    "latitude": 15.0210,
+    "longitude": 74.3820,
+    "average_visit_duration": 3.0,
+    "entry_fee": 100.0,
+    "popularity_score": 0.88,
+    "rating": 4.6,
+    "opening_time": "06:00:00",
+    "closing_time": "17:30:00",
+    "best_time_to_visit": "Morning (07:00 AM)",
+    "tags": ["adventure", "trekking", "canopy", "tiger_reserve", "nature"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.75, "4": 0.60, "5": 0.40,
+      "6": 0.20, "7": 0.10, "8": 0.20, "9": 0.65, "10": 0.90, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.6, "weekend_factor": 1.4 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Anshi Nature Camp Boundary",
+      "timings_source": "Kali Tiger Reserve Field Directorate",
+      "fee_source": "Forest Department Nature Guide & Entry Ticket (INR 100/person)",
+      "duration_estimation_method": "Curated empirical duration for 5km guided trail",
+      "popularity_source": "National Tiger Conservation Authority Eco-Tourism report",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  }
+]

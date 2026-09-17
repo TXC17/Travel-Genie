@@ -1,0 +1,322 @@
+[
+  {
+    "id": "coorg_abbey_falls",
+    "destination_id": "coorg",
+    "name": "Abbey Falls",
+    "category": "nature",
+    "description": "Scenic 70-foot waterfall cascading over rock boulders amidst dense private coffee plantations and spice estates.",
+    "latitude": 12.4526,
+    "longitude": 75.7178,
+    "average_visit_duration": 1.5,
+    "entry_fee": 15.0,
+    "popularity_score": 0.96,
+    "rating": 4.6,
+    "opening_time": "09:00:00",
+    "closing_time": "17:00:00",
+    "best_time_to_visit": "Morning (09:30 AM)",
+    "tags": ["nature", "waterfall", "coffee_plantation", "photography"],
+    "seasonal_scores": {
+      "1": 0.90, "2": 0.85, "3": 0.70, "4": 0.60, "5": 0.65,
+      "6": 0.85, "7": 0.95, "8": 0.95, "9": 1.00, "10": 0.95, "11": 0.95, "12": 0.90
+    },
+    "crowd_heuristics": { "weekday_factor": 0.8, "weekend_factor": 1.6 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Node / Madikeri District GIS Survey",
+      "timings_source": "Abbey Falls Entry Checkpoint Gate",
+      "fee_source": "Horticulture/Estate Entry Ticket (INR 15/person)",
+      "duration_estimation_method": "Curated empirical average for estate pathway walk, hanging bridge view, and photography",
+      "popularity_source": "Karnataka Tourism footfall reports",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "coorg_rajas_seat",
+    "destination_id": "coorg",
+    "name": "Raja's Seat Sunset Point & Gardens",
+    "category": "nature",
+    "description": "Historic brick and mortar pavilion atop a hillock where Kodagu kings observed dramatic sunsets across rolling mist-clad valleys.",
+    "latitude": 12.4180,
+    "longitude": 75.7360,
+    "average_visit_duration": 1.5,
+    "entry_fee": 25.0,
+    "popularity_score": 0.94,
+    "rating": 4.5,
+    "opening_time": "06:00:00",
+    "closing_time": "20:00:00",
+    "best_time_to_visit": "Sunset (05:30 PM)",
+    "tags": ["nature", "sunset", "heritage", "gardens", "viewpoint"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.85, "4": 0.80, "5": 0.75,
+      "6": 0.60, "7": 0.50, "8": 0.55, "9": 0.80, "10": 0.90, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.7, "weekend_factor": 1.5 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Landmark Benchmark Madikeri",
+      "timings_source": "Department of Horticulture Madikeri",
+      "fee_source": "Department of Horticulture Official Garden Tariff (INR 25/person)",
+      "duration_estimation_method": "Curated empirical average for garden stroll and sunset observation",
+      "popularity_source": "District municipal records",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "coorg_dubare_elephant_camp",
+    "destination_id": "coorg",
+    "name": "Dubare Elephant Camp",
+    "category": "adventure",
+    "description": "Eco-tourism elephant training camp on the banks of River Kaveri where visitors can observe elephant bathing and feeding sessions.",
+    "latitude": 12.3680,
+    "longitude": 75.9050,
+    "average_visit_duration": 2.5,
+    "entry_fee": 100.0,
+    "popularity_score": 0.95,
+    "rating": 4.6,
+    "opening_time": "09:00:00",
+    "closing_time": "17:30:00",
+    "best_time_to_visit": "Morning Bathing Session (09:00 AM - 11:30 AM)",
+    "tags": ["wildlife", "adventure", "elephants", "river", "family"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.85, "4": 0.70, "5": 0.65,
+      "6": 0.40, "7": 0.30, "8": 0.40, "9": 0.75, "10": 0.90, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.8, "weekend_factor": 1.8 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Geographic Node Dubare Camp",
+      "timings_source": "Jungle Lodges & Resorts / Karnataka Forest Dept Notice",
+      "fee_source": "Forest Department Entry & Ferry Ticket (INR 100/person)",
+      "duration_estimation_method": "Curated empirical duration for Kaveri boat crossing and interactive camp tour",
+      "popularity_source": "Jungle Lodges & Resorts visitor log",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "coorg_namdroling_monastery",
+    "destination_id": "coorg",
+    "name": "Namdroling Monastery (Golden Temple)",
+    "category": "culture_religious",
+    "description": "Largest teaching center of the Nyingma lineage of Tibetan Buddhism in the world, featuring 40-foot gilded statues of Buddha Shakyamuni.",
+    "latitude": 12.4286,
+    "longitude": 75.9650,
+    "average_visit_duration": 2.0,
+    "entry_fee": 0.0,
+    "popularity_score": 0.97,
+    "rating": 4.8,
+    "opening_time": "09:00:00",
+    "closing_time": "18:00:00",
+    "best_time_to_visit": "Afternoon Prayer (01:00 PM)",
+    "tags": ["culture_religious", "buddhism", "architecture", "spiritual"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.95, "3": 0.90, "4": 0.80, "5": 0.75,
+      "6": 0.70, "7": 0.70, "8": 0.75, "9": 0.85, "10": 0.90, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.7, "weekend_factor": 1.5 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Node Bylakuppe Tibetan Settlement",
+      "timings_source": "Namdroling Monastery Trust Gate Schedule",
+      "fee_source": "Free Public Religious Institution (INR 0)",
+      "duration_estimation_method": "Curated empirical duration for temple hall contemplation and shopping lane tour",
+      "popularity_source": "Karnataka Tourism State Heritage Portal",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "coorg_madikeri_fort",
+    "destination_id": "coorg",
+    "name": "Madikeri Fort & Museum",
+    "category": "heritage",
+    "description": "17th-century palace-fort originally built by Mudduraja and rebuilt in granite by Tipu Sultan with historic stone elephants and district museum.",
+    "latitude": 12.4215,
+    "longitude": 75.7390,
+    "average_visit_duration": 1.5,
+    "entry_fee": 25.0,
+    "popularity_score": 0.86,
+    "rating": 4.3,
+    "opening_time": "10:00:00",
+    "closing_time": "17:30:00",
+    "best_time_to_visit": "Morning (10:30 AM)",
+    "tags": ["heritage", "fort", "museum", "history"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.85, "4": 0.75, "5": 0.70,
+      "6": 0.65, "7": 0.60, "8": 0.65, "9": 0.80, "10": 0.90, "11": 0.95, "12": 0.95
+    },
+    "crowd_heuristics": { "weekday_factor": 0.6, "weekend_factor": 1.3 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Archaeological Benchmark Madikeri",
+      "timings_source": "State Department of Archaeology & Museums Karnataka",
+      "fee_source": "State Archaeology Department Museum Ticket (INR 25/person)",
+      "duration_estimation_method": "Curated empirical average for museum galleries and ramparts walk",
+      "popularity_source": "State Archaeology Department annual report",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "coorg_mandalpatti_peak",
+    "destination_id": "coorg",
+    "name": "Mandalpatti Peak Viewpoint",
+    "category": "adventure",
+    "description": "Rugged 4000-foot ridge viewpoint in the Pushpagiri wildlife range accessible via adventurous 4x4 off-road jeep trail through cloud forests.",
+    "latitude": 12.5180,
+    "longitude": 75.7480,
+    "average_visit_duration": 3.0,
+    "entry_fee": 50.0,
+    "popularity_score": 0.92,
+    "rating": 4.7,
+    "opening_time": "06:00:00",
+    "closing_time": "18:00:00",
+    "best_time_to_visit": "Sunrise (06:30 AM)",
+    "tags": ["adventure", "jeep_safari", "trekking", "clouds", "nature"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.80, "4": 0.70, "5": 0.60,
+      "6": 0.40, "7": 0.30, "8": 0.40, "9": 0.80, "10": 0.95, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.7, "weekend_factor": 1.6 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Pushpagiri Wildlife Sanctuary Landmark",
+      "timings_source": "Karnataka Forest Department Checkpost Gate",
+      "fee_source": "Forest Eco-Development Committee Ticket (INR 50/person)",
+      "duration_estimation_method": "Curated empirical duration for 20km off-road jeep transit and ridge trek",
+      "popularity_source": "Kodagu District Adventure Tourism records",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "coorg_talakaveri",
+    "destination_id": "coorg",
+    "name": "Talakaveri & Brahmagiri Hill",
+    "category": "culture_religious",
+    "description": "Sacred birthplace of the holy River Kaveri nestled in the Brahmagiri hills at 1276m elevation with panoramic Western Ghat vistas.",
+    "latitude": 12.3870,
+    "longitude": 75.4920,
+    "average_visit_duration": 2.0,
+    "entry_fee": 0.0,
+    "popularity_score": 0.91,
+    "rating": 4.6,
+    "opening_time": "06:00:00",
+    "closing_time": "18:30:00",
+    "best_time_to_visit": "Morning (08:00 AM)",
+    "tags": ["culture_religious", "sacred_river", "hills", "panoramic_views"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.85, "4": 0.80, "5": 0.70,
+      "6": 0.50, "7": 0.40, "8": 0.45, "9": 0.75, "10": 0.95, "11": 0.95, "12": 0.95
+    },
+    "crowd_heuristics": { "weekday_factor": 0.7, "weekend_factor": 1.7 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Geographic Node Talakaveri Kundike",
+      "timings_source": "Talakaveri Temple Trust Official Board",
+      "fee_source": "Free Public Religious Shrine (INR 0)",
+      "duration_estimation_method": "Curated empirical duration for kundike visit and Brahmagiri steps climb",
+      "popularity_source": "Karnataka Religious Endowment Department",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "coorg_iruppu_falls",
+    "destination_id": "coorg",
+    "name": "Iruppu Falls (Lakshmana Tirtha)",
+    "category": "nature",
+    "description": "Spectacular fresh water cascade originating in the Brahmagiri peak flowing into Lakshmana Tirtha river amidst dense shola forest.",
+    "latitude": 11.9980,
+    "longitude": 75.9920,
+    "average_visit_duration": 2.5,
+    "entry_fee": 50.0,
+    "popularity_score": 0.88,
+    "rating": 4.5,
+    "opening_time": "08:00:00",
+    "closing_time": "17:30:00",
+    "best_time_to_visit": "Morning (09:00 AM)",
+    "tags": ["nature", "waterfall", "trekking", "forest"],
+    "seasonal_scores": {
+      "1": 0.90, "2": 0.80, "3": 0.65, "4": 0.50, "5": 0.55,
+      "6": 0.80, "7": 0.95, "8": 0.95, "9": 1.00, "10": 0.95, "11": 0.95, "12": 0.90
+    },
+    "crowd_heuristics": { "weekday_factor": 0.6, "weekend_factor": 1.4 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Node / Brahmagiri Forest Boundary",
+      "timings_source": "Karnataka Forest Department Kutta Checkpost",
+      "fee_source": "Forest Eco-Development Committee Ticket (INR 50/person)",
+      "duration_estimation_method": "Curated empirical duration for 1km jungle boardwalk and waterfall viewing",
+      "popularity_source": "Karnataka Forest Department visitor records",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "coorg_tadiandamol_peak",
+    "destination_id": "coorg",
+    "name": "Tadiandamol Peak Trek",
+    "category": "adventure",
+    "description": "Highest peak in Kodagu district at 1748m elevation, featuring a scenic trek across shola grasslands and mist valleys.",
+    "latitude": 12.2130,
+    "longitude": 75.6070,
+    "average_visit_duration": 4.5,
+    "entry_fee": 50.0,
+    "popularity_score": 0.90,
+    "rating": 4.7,
+    "opening_time": "06:00:00",
+    "closing_time": "16:00:00",
+    "best_time_to_visit": "Early Morning (06:30 AM)",
+    "tags": ["adventure", "trekking", "peak", "highest_point", "shola"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.80, "4": 0.60, "5": 0.50,
+      "6": 0.30, "7": 0.20, "8": 0.30, "9": 0.75, "10": 0.90, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.5, "weekend_factor": 1.5 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Topographic Node / Survey of India Benchmark",
+      "timings_source": "Karnataka Forest Department Eco-Tourism Base Post",
+      "fee_source": "Forest Department Trekking Permit Fee (INR 50/person)",
+      "duration_estimation_method": "Curated empirical duration for 12km round-trip mountain hike",
+      "popularity_source": "Kodagu District Trekking Register",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "coorg_nisargadhama",
+    "destination_id": "coorg",
+    "name": "Kaveri Nisargadhama Island",
+    "category": "nature",
+    "description": "64-acre pristine island formed by River Kaveri, covered with dense bamboo groves, hanging rope bridge, deer park, and treehouses.",
+    "latitude": 12.4430,
+    "longitude": 75.9320,
+    "average_visit_duration": 2.0,
+    "entry_fee": 20.0,
+    "popularity_score": 0.89,
+    "rating": 4.3,
+    "opening_time": "09:00:00",
+    "closing_time": "17:30:00",
+    "best_time_to_visit": "Morning (10:00 AM)",
+    "tags": ["nature", "island", "bamboo", "rope_bridge", "family"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.85, "4": 0.75, "5": 0.70,
+      "6": 0.60, "7": 0.60, "8": 0.65, "9": 0.80, "10": 0.90, "11": 0.95, "12": 0.95
+    },
+    "crowd_heuristics": { "weekday_factor": 0.7, "weekend_factor": 1.5 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Geographic Node Kushalnagar Island",
+      "timings_source": "Karnataka Forest Department Eco-Park Gate",
+      "fee_source": "Forest Department Island Ticket (INR 20/person)",
+      "duration_estimation_method": "Curated empirical duration for hanging bridge stroll and deer park visit",
+      "popularity_source": "Karnataka Forest Department visitor records",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  }
+]

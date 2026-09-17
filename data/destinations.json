@@ -1,0 +1,46 @@
+[
+  {
+    "id": "dandeli",
+    "name": "Dandeli",
+    "state": "Karnataka",
+    "description": "Nestled in the Western Ghats along the Kali River, Dandeli is renowned for white-water rafting, dense deciduous wildlife sanctuaries, and serene nature reserves.",
+    "latitude": 15.2361,
+    "longitude": 74.6173,
+    "best_season": "October to March",
+    "is_active": true,
+    "hero_image_url": "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957"
+  },
+  {
+    "id": "coorg",
+    "name": "Coorg",
+    "state": "Karnataka",
+    "description": "Also known as Kodagu, Coorg is a picturesque hill station famous for lush coffee plantations, misty valleys, stunning waterfalls, and rich Kodava culture.",
+    "latitude": 12.3375,
+    "longitude": 75.8069,
+    "best_season": "October to April",
+    "is_active": true,
+    "hero_image_url": "https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5"
+  },
+  {
+    "id": "hampi",
+    "name": "Hampi",
+    "state": "Karnataka",
+    "description": "A UNESCO World Heritage Site boasting grandiose 14th-century ruins of the Vijayanagara Empire amidst surreal boulder-strewn landscapes along the Tungabhadra River.",
+    "latitude": 15.3350,
+    "longitude": 76.4600,
+    "best_season": "November to February",
+    "is_active": true,
+    "hero_image_url": "https://images.unsplash.com/photo-1600100397608-f4f5a34e0050"
+  },
+  {
+    "id": "goa",
+    "name": "Goa",
+    "state": "Goa",
+    "description": "India's premier coastal haven featuring golden sun-kissed beaches, 16th-century Portuguese colonial architecture, UNESCO heritage churches, and vibrant local cuisine.",
+    "latitude": 15.2993,
+    "longitude": 74.1240,
+    "best_season": "November to March",
+    "is_active": true,
+    "hero_image_url": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2"
+  }
+]

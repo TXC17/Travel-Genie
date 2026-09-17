@@ -1,0 +1,32 @@
+[
+  {
+    "id": "adventure",
+    "name": "Adventure & Eco-Tourism",
+    "description": "Active outdoor experiences including river rafting, trekking, wildlife safaris, and nature trails.",
+    "icon_name": "Compass"
+  },
+  {
+    "id": "heritage",
+    "name": "Heritage & Archaeology",
+    "description": "Historical monuments, UNESCO World Heritage architecture, ancient forts, and archaeological ruins.",
+    "icon_name": "Landmark"
+  },
+  {
+    "id": "nature",
+    "name": "Nature & Scenic Viewpoints",
+    "description": "Lush waterfalls, mountain peaks, coffee plantations, scenic valleys, and tranquil riverbanks.",
+    "icon_name": "Trees"
+  },
+  {
+    "id": "coastal",
+    "name": "Beaches & Coastal Leisure",
+    "description": "Sandy shorelines, coastal headlands, beach promenades, and sunset viewpoints.",
+    "icon_name": "Waves"
+  },
+  {
+    "id": "culture_religious",
+    "name": "Culture & Spiritual Sites",
+    "description": "Active temples, monasteries, historic churches, and cultural artisan villages.",
+    "icon_name": "Church"
+  }
+]

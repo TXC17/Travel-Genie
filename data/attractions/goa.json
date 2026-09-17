@@ -1,0 +1,322 @@
+[
+  {
+    "id": "goa_fort_aguada",
+    "destination_id": "goa",
+    "name": "Fort Aguada & 1864 Portuguese Lighthouse",
+    "category": "heritage",
+    "description": "Formidable 17th-century Portuguese coastal bastion with a 79-gun battery and freshwater spring overlooking Sinquerim beach and the Arabian Sea.",
+    "latitude": 15.4920,
+    "longitude": 73.7737,
+    "average_visit_duration": 2.0,
+    "entry_fee": 50.0,
+    "popularity_score": 0.98,
+    "rating": 4.6,
+    "opening_time": "09:30:00",
+    "closing_time": "17:30:00",
+    "best_time_to_visit": "Late Afternoon (04:00 PM)",
+    "tags": ["heritage", "fort", "coastal", "lighthouse", "portuguese"],
+    "seasonal_scores": {
+      "1": 1.00, "2": 0.95, "3": 0.85, "4": 0.70, "5": 0.60,
+      "6": 0.40, "7": 0.35, "8": 0.45, "9": 0.75, "10": 0.90, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.8, "weekend_factor": 1.7 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Geographic Landmark Node / ASI Goa Circle",
+      "timings_source": "Archaeological Survey of India (ASI) Fort Aguada Gate Board",
+      "fee_source": "ASI Monument Category-B Ticket Notification (INR 50/person)",
+      "duration_estimation_method": "Curated empirical average for moat walk, upper fort ramparts, and jail museum tour",
+      "popularity_source": "Goa Tourism Development Corporation (GTDC) annual footfall survey",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "goa_chapora_fort",
+    "destination_id": "goa",
+    "name": "Chapora Fort (Dil Chahta Hai Point)",
+    "category": "heritage",
+    "description": "Historic red-laterite fort perched high above the Chapora River estuary offering iconic cinematic views of Vagator Beach and Arabian Sea.",
+    "latitude": 15.6060,
+    "longitude": 73.7380,
+    "average_visit_duration": 1.5,
+    "entry_fee": 0.0,
+    "popularity_score": 0.95,
+    "rating": 4.5,
+    "opening_time": "06:00:00",
+    "closing_time": "19:00:00",
+    "best_time_to_visit": "Sunset (05:30 PM)",
+    "tags": ["heritage", "sunset", "fort", "viewpoint", "cinematic"],
+    "seasonal_scores": {
+      "1": 1.00, "2": 0.95, "3": 0.80, "4": 0.65, "5": 0.55,
+      "6": 0.45, "7": 0.40, "8": 0.50, "9": 0.75, "10": 0.90, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.7, "weekend_factor": 1.6 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Node / Directorate of Archives & Archaeology Goa",
+      "timings_source": "Directorate of Archives & Archaeology Government of Goa",
+      "fee_source": "Free Public State Monument (INR 0)",
+      "duration_estimation_method": "Curated empirical duration for hill ascent and rampart stroll",
+      "popularity_source": "State tourism regional survey records",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "goa_basilica_bom_jesus",
+    "destination_id": "goa",
+    "name": "Basilica of Bom Jesus",
+    "category": "culture_religious",
+    "description": "1605 UNESCO World Heritage Baroque basilica in Old Goa holding the sacred mortal remains of St. Francis Xavier in a silver casket.",
+    "latitude": 15.5008,
+    "longitude": 73.9116,
+    "average_visit_duration": 1.5,
+    "entry_fee": 0.0,
+    "popularity_score": 0.99,
+    "rating": 4.8,
+    "opening_time": "09:00:00",
+    "closing_time": "18:30:00",
+    "best_time_to_visit": "Morning (09:30 AM)",
+    "tags": ["culture_religious", "unesco", "baroque", "church", "heritage"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.80, "4": 0.70, "5": 0.65,
+      "6": 0.60, "7": 0.60, "8": 0.65, "9": 0.80, "10": 0.90, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.8, "weekend_factor": 1.6 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap UNESCO Monument Registry Node 248910112",
+      "timings_source": "Archdiocese of Goa & Daman and ASI Gate Board",
+      "fee_source": "Free Public Place of Worship / ASI Protected Site (INR 0)",
+      "duration_estimation_method": "Curated empirical average for nave prayer, silver casket view, and art gallery walk",
+      "popularity_source": "UNESCO World Heritage Centre visitor registry",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "goa_se_cathedral",
+    "destination_id": "goa",
+    "name": "Se Cathedral (Old Goa)",
+    "category": "culture_religious",
+    "description": "16th-century grand cathedral dedicated to St. Catherine, one of the largest in Asia, known for its Portuguese-Gothic Golden Bell tower.",
+    "latitude": 15.5035,
+    "longitude": 73.9125,
+    "average_visit_duration": 1.0,
+    "entry_fee": 0.0,
+    "popularity_score": 0.94,
+    "rating": 4.6,
+    "opening_time": "07:30:00",
+    "closing_time": "18:00:00",
+    "best_time_to_visit": "Morning (10:30 AM)",
+    "tags": ["culture_religious", "cathedral", "unesco", "golden_bell", "heritage"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.80, "4": 0.70, "5": 0.65,
+      "6": 0.60, "7": 0.60, "8": 0.65, "9": 0.80, "10": 0.90, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.7, "weekend_factor": 1.4 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Geographic Landmark Node / ASI Old Goa Complex",
+      "timings_source": "ASI Old Goa Monastic Precinct Gate Board",
+      "fee_source": "Free Public Protected Heritage Church (INR 0)",
+      "duration_estimation_method": "Curated empirical duration for cathedral interior and Golden Bell viewing",
+      "popularity_source": "ASI Goa Circle visitors index",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "goa_baga_beach",
+    "destination_id": "goa",
+    "name": "Baga Beach & Coastal Promenade",
+    "category": "coastal",
+    "description": "Vibrant shoreline in North Goa famous for parasailing, jet skiing, beachside dining shacks, and evening nightlife.",
+    "latitude": 15.5553,
+    "longitude": 73.7517,
+    "average_visit_duration": 3.0,
+    "entry_fee": 0.0,
+    "popularity_score": 0.98,
+    "rating": 4.5,
+    "opening_time": "00:00:00",
+    "closing_time": "23:59:00",
+    "best_time_to_visit": "Late Afternoon to Evening (04:30 PM - 08:00 PM)",
+    "tags": ["coastal", "beach", "water_sports", "nightlife", "shacks"],
+    "seasonal_scores": {
+      "1": 1.00, "2": 0.95, "3": 0.80, "4": 0.65, "5": 0.50,
+      "6": 0.20, "7": 0.10, "8": 0.20, "9": 0.65, "10": 0.90, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.8, "weekend_factor": 1.9 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Geographic Shoreline Benchmark",
+      "timings_source": "Public Shoreline Access",
+      "fee_source": "Free Public Beach (INR 0)",
+      "duration_estimation_method": "Curated empirical average for beach relaxation, water sport activity, and shack dinner",
+      "popularity_source": "GTDC Coastal tourism survey reports",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "goa_palolem_beach",
+    "destination_id": "goa",
+    "name": "Palolem Beach (Crescent Bay)",
+    "category": "coastal",
+    "description": "Picture-perfect crescent-shaped white sand bay in South Goa lined with coconut palms, gentle swimming waters, and dolphin boat tours.",
+    "latitude": 15.0100,
+    "longitude": 74.0230,
+    "average_visit_duration": 3.0,
+    "entry_fee": 0.0,
+    "popularity_score": 0.97,
+    "rating": 4.8,
+    "opening_time": "00:00:00",
+    "closing_time": "23:59:00",
+    "best_time_to_visit": "Morning (08:30 AM) or Sunset (05:30 PM)",
+    "tags": ["coastal", "beach", "kayaking", "relaxation", "sunset"],
+    "seasonal_scores": {
+      "1": 1.00, "2": 0.95, "3": 0.85, "4": 0.70, "5": 0.55,
+      "6": 0.20, "7": 0.15, "8": 0.25, "9": 0.70, "10": 0.90, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.7, "weekend_factor": 1.5 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap South Goa Coastal Benchmark",
+      "timings_source": "Public Bay Access",
+      "fee_source": "Free Public Shoreline (INR 0)",
+      "duration_estimation_method": "Curated empirical average for swimming, kayaking, and sunset lounge",
+      "popularity_source": "Canacona Municipal Tourism registers",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "goa_dudhsagar_falls",
+    "destination_id": "goa",
+    "name": "Dudhsagar Waterfalls Safari",
+    "category": "adventure",
+    "description": "Spectacular four-tiered 310-meter white cataract on the Mandovi River in Bhagwan Mahaveer Sanctuary, reached via 4x4 jungle jeep safari.",
+    "latitude": 15.3144,
+    "longitude": 74.3143,
+    "average_visit_duration": 4.5,
+    "entry_fee": 500.0,
+    "popularity_score": 0.96,
+    "rating": 4.7,
+    "opening_time": "07:00:00",
+    "closing_time": "16:30:00",
+    "best_time_to_visit": "Morning Safari (07:30 AM)",
+    "tags": ["adventure", "waterfall", "jeep_safari", "forest", "nature"],
+    "seasonal_scores": {
+      "1": 0.90, "2": 0.80, "3": 0.60, "4": 0.40, "5": 0.30,
+      "6": 0.10, "7": 0.00, "8": 0.00, "9": 0.70, "10": 0.95, "11": 1.00, "12": 0.95
+    },
+    "crowd_heuristics": { "weekday_factor": 0.8, "weekend_factor": 1.8 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Bhagwan Mahaveer Sanctuary Landmark",
+      "timings_source": "Goa Forest Department Kulem Jeep Safari Association",
+      "fee_source": "Goa Forest Department Entry & Sanctuary Jeep Association Tariff (INR 500/person shared seat)",
+      "duration_estimation_method": "Official round-trip jungle jeep transit (1.5h) + 1.5h waterfall pool swim + gear turnaround",
+      "popularity_source": "Goa Forest Department Wildlife Division records",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "official_safari_schedule"
+  },
+  {
+    "id": "goa_cabo_de_rama",
+    "destination_id": "goa",
+    "name": "Cabo de Rama Fort & Cliff Viewpoint",
+    "category": "heritage",
+    "description": "Ancient coastal fortress named after Lord Rama perched dramatically atop steep ocean cliffs overlooking secluded turquoise coves.",
+    "latitude": 15.0880,
+    "longitude": 73.9210,
+    "average_visit_duration": 1.5,
+    "entry_fee": 0.0,
+    "popularity_score": 0.89,
+    "rating": 4.6,
+    "opening_time": "09:00:00",
+    "closing_time": "17:30:00",
+    "best_time_to_visit": "Afternoon to Sunset (04:30 PM)",
+    "tags": ["heritage", "fort", "cliffs", "sunset", "ocean_view"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.80, "4": 0.70, "5": 0.60,
+      "6": 0.40, "7": 0.35, "8": 0.45, "9": 0.75, "10": 0.90, "11": 0.95, "12": 0.95
+    },
+    "crowd_heuristics": { "weekday_factor": 0.6, "weekend_factor": 1.3 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Landmark Benchmark South Goa",
+      "timings_source": "Directorate of Archives & Archaeology Government of Goa",
+      "fee_source": "Free Public State Monument (INR 0)",
+      "duration_estimation_method": "Curated empirical average for church visit, bastion exploration, and cliffside photography",
+      "popularity_source": "GTDC heritage trail records",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "goa_fontainhas",
+    "destination_id": "goa",
+    "name": "Fontainhas Latin Quarter Heritage Walk",
+    "category": "culture_religious",
+    "description": "UNESCO-recognized living heritage quarter in Panaji famous for narrow winding lanes, vibrant pastel-colored Portuguese villas, and wrought-iron balconies.",
+    "latitude": 15.4980,
+    "longitude": 73.8320,
+    "average_visit_duration": 1.5,
+    "entry_fee": 0.0,
+    "popularity_score": 0.93,
+    "rating": 4.7,
+    "opening_time": "00:00:00",
+    "closing_time": "23:59:00",
+    "best_time_to_visit": "Morning (08:30 AM) or Late Afternoon (04:00 PM)",
+    "tags": ["culture_religious", "heritage", "portuguese", "architecture", "photography"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.95, "3": 0.85, "4": 0.70, "5": 0.60,
+      "6": 0.65, "7": 0.65, "8": 0.70, "9": 0.80, "10": 0.90, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.6, "weekend_factor": 1.4 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Panaji Heritage Precinct Node",
+      "timings_source": "Public Urban Heritage Precinct",
+      "fee_source": "Free Public Residential Heritage Quarter (INR 0)",
+      "duration_estimation_method": "Curated empirical average for walking photography tour and bakery visit",
+      "popularity_source": "Corporation of the City of Panaji Heritage Cell",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "goa_mangueshi_temple",
+    "destination_id": "goa",
+    "name": "Shri Mangueshi Temple Priol",
+    "category": "culture_religious",
+    "description": "450-year-old Hindu temple dedicated to Lord Shiva featuring unique Goan-Hindu architecture and iconic seven-story deepastambha lamp tower.",
+    "latitude": 15.4340,
+    "longitude": 73.9680,
+    "average_visit_duration": 1.0,
+    "entry_fee": 0.0,
+    "popularity_score": 0.90,
+    "rating": 4.7,
+    "opening_time": "06:00:00",
+    "closing_time": "21:00:00",
+    "best_time_to_visit": "Morning (08:00 AM)",
+    "tags": ["culture_religious", "temple", "deepastambha", "spiritual", "architecture"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.95, "3": 0.85, "4": 0.75, "5": 0.70,
+      "6": 0.65, "7": 0.65, "8": 0.70, "9": 0.80, "10": 0.90, "11": 0.95, "12": 0.95
+    },
+    "crowd_heuristics": { "weekday_factor": 0.7, "weekend_factor": 1.5 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Geographic Node Priol Sansthan",
+      "timings_source": "Shri Manguesh Sansthan Temple Trust Official Schedule",
+      "fee_source": "Free Public Religious Shrine (INR 0)",
+      "duration_estimation_method": "Curated empirical average for water tank promenade and inner sanctum darshan",
+      "popularity_source": "Goa Tourism cultural heritage survey",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  }
+]

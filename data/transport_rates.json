@@ -1,0 +1,37 @@
+{
+  "walking": {
+    "speed_kmh": 4.5,
+    "base_fare": 0,
+    "per_km_rate": 0,
+    "max_practical_km": 2.0,
+    "pedestrian_only": true
+  },
+  "auto": {
+    "speed_kmh": 25.0,
+    "base_fare": 30.0,
+    "per_km_rate": 15.0,
+    "max_passengers": 3,
+    "suitability": "Short to medium urban and local trips"
+  },
+  "taxi": {
+    "speed_kmh": 35.0,
+    "base_fare": 150.0,
+    "per_km_rate": 20.0,
+    "max_passengers": 6,
+    "suitability": "Group travel, inter-cluster transfers, long sightseeing routes"
+  },
+  "rental": {
+    "speed_kmh": 35.0,
+    "daily_base_cost": 1200.0,
+    "per_km_fuel": 6.0,
+    "max_passengers": 5,
+    "suitability": "Full-day dedicated sightseeing flexibility"
+  },
+  "public": {
+    "speed_kmh": 20.0,
+    "base_fare": 15.0,
+    "per_km_rate": 4.0,
+    "max_passengers": 50,
+    "suitability": "Budget-conscious solo or duo travelers along major transit corridors"
+  }
+}

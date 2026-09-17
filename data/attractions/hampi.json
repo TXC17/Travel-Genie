@@ -1,0 +1,322 @@
+[
+  {
+    "id": "hampi_virupaksha_temple",
+    "destination_id": "hampi",
+    "name": "Virupaksha Temple",
+    "category": "heritage",
+    "description": "7th-century functioning temple dedicated to Lord Shiva with a soaring 50-meter gopuram, intricate pillared mandapas, and temple elephant.",
+    "latitude": 15.3352,
+    "longitude": 76.4601,
+    "average_visit_duration": 1.5,
+    "entry_fee": 25.0,
+    "popularity_score": 0.99,
+    "rating": 4.8,
+    "opening_time": "06:00:00",
+    "closing_time": "21:00:00",
+    "best_time_to_visit": "Morning Darshan (07:00 AM)",
+    "tags": ["heritage", "temple", "architecture", "spiritual", "unesco"],
+    "seasonal_scores": {
+      "1": 1.00, "2": 0.90, "3": 0.65, "4": 0.35, "5": 0.30,
+      "6": 0.55, "7": 0.70, "8": 0.75, "9": 0.85, "10": 0.95, "11": 1.00, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.8, "weekend_factor": 1.6 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Geographic Node 248910480 / ASI Hampi Circle",
+      "timings_source": "Virupaksha Temple Trust Official Schedule",
+      "fee_source": "Temple Administration Maintenance Fee (INR 25/person)",
+      "duration_estimation_method": "Curated empirical average for sanctum sanctorum darshan and mandapa walkthrough",
+      "popularity_source": "Archaeological Survey of India & UNESCO footfall index",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "hampi_vittala_temple",
+    "destination_id": "hampi",
+    "name": "Vijaya Vittala Temple & Stone Chariot",
+    "category": "heritage",
+    "description": "Architectural zenith of Vijayanagara empire featuring the world-famous iconic monolithic Stone Chariot and Ranga Mandapa musical pillars.",
+    "latitude": 15.3370,
+    "longitude": 76.4780,
+    "average_visit_duration": 2.0,
+    "entry_fee": 40.0,
+    "popularity_score": 1.00,
+    "rating": 4.9,
+    "opening_time": "08:30:00",
+    "closing_time": "17:30:00",
+    "best_time_to_visit": "Morning (08:30 AM) or Late Afternoon (04:00 PM)",
+    "tags": ["heritage", "stone_chariot", "unesco", "monument", "history"],
+    "seasonal_scores": {
+      "1": 1.00, "2": 0.90, "3": 0.60, "4": 0.30, "5": 0.25,
+      "6": 0.50, "7": 0.65, "8": 0.70, "9": 0.80, "10": 0.95, "11": 1.00, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.9, "weekend_factor": 1.8 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Node 248910482 / ASI Monument Registry",
+      "timings_source": "Archaeological Survey of India (ASI) Hampi Circle Official Portal",
+      "fee_source": "ASI Monument Category-A Notification (Indian Tariff: INR 40, BIMSTEC/SAARC: INR 40, Foreigner: INR 600 - Combined Ticket)",
+      "duration_estimation_method": "Curated empirical average for UNESCO Heritage compound and battery cart transit",
+      "popularity_source": "ASI Hampi Circle national visitor records",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "hampi_lotus_mahal",
+    "destination_id": "hampi",
+    "name": "Lotus Mahal & Elephant Stables (Zenana Enclosure)",
+    "category": "heritage",
+    "description": "Indo-Islamic architectural gem with lotus petal arches, air-cooled royal chambers, and 11 domed elephant stables.",
+    "latitude": 15.3210,
+    "longitude": 76.4700,
+    "average_visit_duration": 1.5,
+    "entry_fee": 40.0,
+    "popularity_score": 0.95,
+    "rating": 4.7,
+    "opening_time": "08:30:00",
+    "closing_time": "17:30:00",
+    "best_time_to_visit": "Afternoon (03:00 PM)",
+    "tags": ["heritage", "indo_islamic", "palace", "elephant_stables", "unesco"],
+    "seasonal_scores": {
+      "1": 1.00, "2": 0.85, "3": 0.60, "4": 0.35, "5": 0.30,
+      "6": 0.50, "7": 0.65, "8": 0.70, "9": 0.80, "10": 0.90, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.8, "weekend_factor": 1.5 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Zenana Enclosure Landmark Node",
+      "timings_source": "ASI Zenana Enclosure Entry Gate",
+      "fee_source": "Included in same-day ASI Vittala Category-A Ticket (INR 40)",
+      "duration_estimation_method": "Curated empirical duration for royal enclosure lawn walk and museum gallery",
+      "popularity_source": "ASI ticket validation registers",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "hampi_matanga_hill",
+    "destination_id": "hampi",
+    "name": "Matanga Hill Sunrise Point",
+    "category": "adventure",
+    "description": "Central and highest hill in Hampi offering majestic 360-degree aerial panorama over the entire ruined kingdom, boulder hills, and Achyutaraya temple.",
+    "latitude": 15.3315,
+    "longitude": 76.4670,
+    "average_visit_duration": 2.0,
+    "entry_fee": 0.0,
+    "popularity_score": 0.96,
+    "rating": 4.8,
+    "opening_time": "05:30:00",
+    "closing_time": "18:30:00",
+    "best_time_to_visit": "Sunrise (06:00 AM)",
+    "tags": ["adventure", "trekking", "sunrise", "panoramic_views", "nature"],
+    "seasonal_scores": {
+      "1": 1.00, "2": 0.90, "3": 0.70, "4": 0.40, "5": 0.30,
+      "6": 0.50, "7": 0.65, "8": 0.70, "9": 0.85, "10": 0.95, "11": 1.00, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.6, "weekend_factor": 1.4 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Topographic Landmark Matanga Peak",
+      "timings_source": "Open Public Access Trail",
+      "fee_source": "Free Public Heritage Landscape (INR 0)",
+      "duration_estimation_method": "Curated empirical duration for 30-minute boulder stair climb and summit observation",
+      "popularity_source": "UNESCO Heritage buffer survey reports",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "hampi_hemakuta_hill",
+    "destination_id": "hampi",
+    "name": "Hemakuta Hill Temples & Sunset Point",
+    "category": "heritage",
+    "description": "Gentle sloping granite hill sprinkled with over 30 pre-Vijayanagara triple-chambered shrines and Sasivekalu Ganesha monolith.",
+    "latitude": 15.3320,
+    "longitude": 76.4580,
+    "average_visit_duration": 1.5,
+    "entry_fee": 0.0,
+    "popularity_score": 0.94,
+    "rating": 4.7,
+    "opening_time": "06:00:00",
+    "closing_time": "18:30:00",
+    "best_time_to_visit": "Sunset (05:30 PM)",
+    "tags": ["heritage", "sunset", "monuments", "ganesha", "boulders"],
+    "seasonal_scores": {
+      "1": 1.00, "2": 0.90, "3": 0.65, "4": 0.35, "5": 0.30,
+      "6": 0.50, "7": 0.65, "8": 0.70, "9": 0.85, "10": 0.95, "11": 1.00, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.7, "weekend_factor": 1.5 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Archaeological Zone Hemakuta",
+      "timings_source": "ASI Open Access Archaeological Site",
+      "fee_source": "Free Public Monument (INR 0)",
+      "duration_estimation_method": "Curated empirical average for hilltop exploration and sunset viewing",
+      "popularity_source": "State tourism surveys",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "hampi_queens_bath",
+    "destination_id": "hampi",
+    "name": "Queen's Bath (Royal Enclosure)",
+    "category": "heritage",
+    "description": "Elaborate square water pavilion with ornate Indo-Saracenic vaulted balconies, arched corridors, and central open-sky pool.",
+    "latitude": 15.3140,
+    "longitude": 76.4720,
+    "average_visit_duration": 1.0,
+    "entry_fee": 0.0,
+    "popularity_score": 0.85,
+    "rating": 4.3,
+    "opening_time": "08:30:00",
+    "closing_time": "17:30:00",
+    "best_time_to_visit": "Morning (10:00 AM)",
+    "tags": ["heritage", "royal_enclosure", "architecture", "history"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.85, "3": 0.60, "4": 0.35, "5": 0.30,
+      "6": 0.50, "7": 0.60, "8": 0.65, "9": 0.80, "10": 0.90, "11": 0.95, "12": 0.95
+    },
+    "crowd_heuristics": { "weekday_factor": 0.6, "weekend_factor": 1.2 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Royal Enclosure Entry Landmark",
+      "timings_source": "ASI Royal Enclosure Circular",
+      "fee_source": "Free Public Protected Structure (INR 0)",
+      "duration_estimation_method": "Curated empirical duration for interior corridor tour",
+      "popularity_source": "ASI visitor registries",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "hampi_coracle_ride",
+    "destination_id": "hampi",
+    "name": "Tungabhadra River Coracle Boat Ride",
+    "category": "adventure",
+    "description": "Traditional round reed-and-canvas coracle boat excursion across the swirling boulder channels of the Tungabhadra River.",
+    "latitude": 15.3380,
+    "longitude": 76.4650,
+    "average_visit_duration": 1.0,
+    "entry_fee": 250.0,
+    "popularity_score": 0.92,
+    "rating": 4.6,
+    "opening_time": "07:00:00",
+    "closing_time": "18:00:00",
+    "best_time_to_visit": "Morning (08:30 AM)",
+    "tags": ["adventure", "river", "boat", "coracle", "nature"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.70, "4": 0.40, "5": 0.35,
+      "6": 0.20, "7": 0.10, "8": 0.15, "9": 0.60, "10": 0.85, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.7, "weekend_factor": 1.5 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Ghat Node Tungabhadra River",
+      "timings_source": "KSTDC Regulated Coracle Ferry Union",
+      "fee_source": "Published Local Boat Operators Tariff (INR 250/person for 30-min river circuit)",
+      "duration_estimation_method": "Curated empirical duration for boarding, safety jacket check, and river glide",
+      "popularity_source": "Karnataka Tourism adventure index",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "hampi_narasimha_monolith",
+    "destination_id": "hampi",
+    "name": "Lakshmi Narasimha & Badavilinga Monoliths",
+    "category": "heritage",
+    "description": "Colossal 6.7-meter monolithic statue of Lord Narasimha carved in 1528 AD and adjacent monolithic Shiva Linga submerged in water.",
+    "latitude": 15.3280,
+    "longitude": 76.4590,
+    "average_visit_duration": 1.0,
+    "entry_fee": 0.0,
+    "popularity_score": 0.93,
+    "rating": 4.7,
+    "opening_time": "06:00:00",
+    "closing_time": "18:30:00",
+    "best_time_to_visit": "Morning (08:00 AM)",
+    "tags": ["heritage", "monolith", "sculpture", "unesco", "history"],
+    "seasonal_scores": {
+      "1": 1.00, "2": 0.90, "3": 0.65, "4": 0.35, "5": 0.30,
+      "6": 0.50, "7": 0.65, "8": 0.70, "9": 0.85, "10": 0.95, "11": 1.00, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.7, "weekend_factor": 1.4 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Monolithic Monument Benchmark",
+      "timings_source": "ASI Open Access Monument Notice",
+      "fee_source": "Free Public Protected Monument (INR 0)",
+      "duration_estimation_method": "Curated empirical average for sculpture appreciation and photography",
+      "popularity_source": "ASI Hampi Circle registry",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "hampi_hazara_rama",
+    "destination_id": "hampi",
+    "name": "Hazara Rama Temple (Ramayana Bas-Reliefs)",
+    "category": "heritage",
+    "description": "Private royal temple featuring over a thousand bas-relief sculptures depicting the complete epic narrative of the Ramayana.",
+    "latitude": 15.3190,
+    "longitude": 76.4680,
+    "average_visit_duration": 1.0,
+    "entry_fee": 0.0,
+    "popularity_score": 0.91,
+    "rating": 4.6,
+    "opening_time": "08:30:00",
+    "closing_time": "17:30:00",
+    "best_time_to_visit": "Morning (11:00 AM)",
+    "tags": ["heritage", "ramayana", "bas_reliefs", "royal_temple", "unesco"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.85, "3": 0.60, "4": 0.35, "5": 0.30,
+      "6": 0.50, "7": 0.60, "8": 0.65, "9": 0.80, "10": 0.90, "11": 0.95, "12": 0.95
+    },
+    "crowd_heuristics": { "weekday_factor": 0.6, "weekend_factor": 1.3 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Royal Centre Node",
+      "timings_source": "ASI Protected Site Gate Schedule",
+      "fee_source": "Free Public Protected Monument (INR 0)",
+      "duration_estimation_method": "Curated empirical duration for examining outer and inner relief panels",
+      "popularity_source": "ASI Hampi heritage records",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  },
+  {
+    "id": "hampi_sanapur_lake",
+    "destination_id": "hampi",
+    "name": "Sanapur Lake & Boulder Cliffs",
+    "category": "nature",
+    "description": "Serene turquoise irrigation reservoir flanked by towering granite boulders on the Anegundi side, popular for cliff views and sunsets.",
+    "latitude": 15.3620,
+    "longitude": 76.4420,
+    "average_visit_duration": 2.0,
+    "entry_fee": 0.0,
+    "popularity_score": 0.91,
+    "rating": 4.6,
+    "opening_time": "07:00:00",
+    "closing_time": "18:30:00",
+    "best_time_to_visit": "Late Afternoon (04:00 PM)",
+    "tags": ["nature", "lake", "bouldering", "sunset", "relaxation"],
+    "seasonal_scores": {
+      "1": 0.95, "2": 0.90, "3": 0.70, "4": 0.40, "5": 0.30,
+      "6": 0.50, "7": 0.65, "8": 0.70, "9": 0.85, "10": 0.95, "11": 0.95, "12": 1.00
+    },
+    "crowd_heuristics": { "weekday_factor": 0.6, "weekend_factor": 1.4 },
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Water Body Node Koppal District",
+      "timings_source": "Public Lake Access",
+      "fee_source": "Free Public Reservoir (INR 0)",
+      "duration_estimation_method": "Curated empirical duration for lakeside relaxation and sunset contemplation",
+      "popularity_source": "Anegundi rural tourism records",
+      "verification_date": "2026-08"
+    },
+    "is_verified": true,
+    "duration_estimation_method": "curated_empirical_average"
+  }
+]
