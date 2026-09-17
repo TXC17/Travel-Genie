@@ -105,7 +105,8 @@ def main():
     )
     assert status == 200, f"Chat message 1 failed: {chat_res1}"
     print("[PASS] 8. Conversational Initial Planning Message Processed:")
-    print(f"     - Response preview: {chat_res1['content'][:120]}...")
+    preview = chat_res1['content'][:120].encode('ascii', 'ignore').decode('ascii')
+    print(f"     - Response preview: {preview}...")
 
     # Prompt 2: Replanning request
     prompt2 = "Actually, make it 2 days and keep the budget below 12000."

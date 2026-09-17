@@ -1,5 +1,5 @@
 import { apiClient } from './api';
-import { GenerateItineraryResponse, MultiDayTripOptimizationResponse } from '../types';
+import { GenerateItineraryResponse } from '../types';
 
 export interface GenerateTripPayload {
   destination_id: string;
@@ -19,6 +19,7 @@ export interface TripDetail {
   title: string;
   start_date: string;
   end_date: string;
+  number_of_days?: number;
   party_size: number;
   total_budget: number;
   created_at: string;
@@ -39,6 +40,11 @@ export const tripService = {
 
   async getTrip(id: string): Promise<TripDetail> {
     const res = await apiClient.get<TripDetail>(`/trips/${id}`);
+    return res.data;
+  },
+
+  async updateTrip(id: string, payload: { title?: string }): Promise<TripDetail> {
+    const res = await apiClient.put<TripDetail>(`/trips/${id}/preferences`, payload);
     return res.data;
   },
 

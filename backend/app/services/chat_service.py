@@ -72,6 +72,25 @@ class ChatService:
             raise AuthorizationException("Not authorized to access this chat session")
         return session
 
+    def update_session_title(
+        self, db: Session, session_id: str, user_id: str, title: str
+    ) -> ChatSession:
+        """Update the title of a specific chat session."""
+        session = self.get_session_by_id(db, session_id, user_id)
+        session.title = title.strip() or "Travel Plan"
+        db.add(session)
+        db.commit()
+        db.refresh(session)
+        return session
+
+    def delete_session(self, db: Session, session_id: str, user_id: str) -> bool:
+        """Delete a chat session and its associated messages."""
+        session = self.get_session_by_id(db, session_id, user_id)
+        db.query(ChatMessage).filter(ChatMessage.session_id == session.id).delete()
+        db.delete(session)
+        db.commit()
+        return True
+
     def _persist_optimized_itinerary(
         self,
         db: Session,
@@ -88,9 +107,10 @@ class ChatService:
         if session.trip_id:
             trip = db.query(Trip).filter(Trip.id == session.trip_id).first()
 
+        dest = db.query(Destination).filter(Destination.id == constraints.destination_id).first()
+        dest_name = dest.name if dest else (constraints.destination_name or (constraints.destination_id or "Trip").title())
+
         if not trip:
-            dest = db.query(Destination).filter(Destination.id == constraints.destination_id).first()
-            dest_name = dest.name if dest else (constraints.destination_name or "Trip")
             trip = Trip(
                 creator_id=user_id,
                 destination_id=constraints.destination_id or "hampi",
@@ -116,7 +136,11 @@ class ChatService:
             db.flush()
 
             session.trip_id = trip.id
-            db.add(session)
+
+        # Update session title if it is default
+        if session.title in ["New Travel Plan", "Trip Planning Chat", "Trip Planning", ""]:
+            session.title = f"{dest_name} {constraints.duration_days or 3}-Day Trip"
+        db.add(session)
 
         # 2. Mark previous itineraries as non-current
         db.query(Itinerary).filter(Itinerary.trip_id == trip.id).update({"is_current": False})
@@ -296,7 +320,86 @@ class ChatService:
                 if m.extracted_constraints.get("destination_id"):
                     prev_constraints = ExtractedTripConstraintsSchema.model_validate(m.extracted_constraints)
 
-        # 3. NLU Constraint Extraction
+        # 3. Check for pure greetings / small-talk / help when user is not specifying new constraints
+        is_greeting = self.conversation_engine.is_pure_greeting(request.content)
+        is_thanks = self.conversation_engine.is_pure_thanks(request.content)
+        is_help = self.conversation_engine.is_help_query(request.content)
+
+        if is_thanks:
+            reply_text = "You're very welcome! 😊 Let me know if you would like to adjust any stops, change your travel pace, or plan another trip."
+            assistant_msg = ChatMessage(
+                session_id=session.id,
+                sender="assistant",
+                content=reply_text,
+                extracted_constraints=prev_constraints.model_dump() if prev_constraints else {},
+            )
+            db.add(assistant_msg)
+            db.commit()
+            db.refresh(assistant_msg)
+            return SendMessageResponse(
+                session_id=session.id,
+                message_id=assistant_msg.id,
+                sender="assistant",
+                content=reply_text,
+                extracted_constraints=prev_constraints or ExtractedTripConstraintsSchema(is_complete=False, missing_fields=["destination", "duration_days"]),
+                itinerary=None,
+                is_clarification=True,
+                clarification_question=reply_text,
+            )
+
+        if is_help:
+            reply_text = (
+                "I am Travel Genie! 🧞‍♂️ I build mathematically optimal, time-feasible itineraries for "
+                "Hampi, Coorg, Dandeli, and Goa using Multi-Criteria Scoring (MCDM), Spatial K-Means clustering, and Google OR-Tools.\n\n"
+                "To get started, tell me your destination and duration (e.g. *'Plan a 3-day Hampi trip with auto and ₹15,000 budget'*)."
+            )
+            assistant_msg = ChatMessage(
+                session_id=session.id,
+                sender="assistant",
+                content=reply_text,
+                extracted_constraints=prev_constraints.model_dump() if prev_constraints else {},
+            )
+            db.add(assistant_msg)
+            db.commit()
+            db.refresh(assistant_msg)
+            return SendMessageResponse(
+                session_id=session.id,
+                message_id=assistant_msg.id,
+                sender="assistant",
+                content=reply_text,
+                extracted_constraints=prev_constraints or ExtractedTripConstraintsSchema(is_complete=False, missing_fields=["destination", "duration_days"]),
+                itinerary=None,
+                is_clarification=True,
+                clarification_question=reply_text,
+            )
+
+        if is_greeting and prev_constraints and prev_constraints.is_complete:
+            dest_name = prev_constraints.destination_name or prev_constraints.destination_id.title()
+            reply_text = (
+                f"Hello! 👋 How can I help you with your {dest_name} trip? "
+                f"You can ask to change days (e.g. *'make it 2 days'*), adjust budget (e.g. *'budget below 12000'*), or change transport mode."
+            )
+            assistant_msg = ChatMessage(
+                session_id=session.id,
+                sender="assistant",
+                content=reply_text,
+                extracted_constraints=prev_constraints.model_dump(),
+            )
+            db.add(assistant_msg)
+            db.commit()
+            db.refresh(assistant_msg)
+            return SendMessageResponse(
+                session_id=session.id,
+                message_id=assistant_msg.id,
+                sender="assistant",
+                content=reply_text,
+                extracted_constraints=prev_constraints,
+                itinerary=None,
+                is_clarification=True,
+                clarification_question=reply_text,
+            )
+
+        # 4. NLU Constraint Extraction
         current_constraints = self.conversation_engine.extract_constraints(
             request.content, previous_constraints=prev_constraints
         )
@@ -305,7 +408,7 @@ class ChatService:
         db.add(user_msg)
         db.commit()
 
-        # 4. Clarification check
+        # 5. Clarification check
         if not current_constraints.is_complete:
             clarification_text = current_constraints.clarification_question or (
                 "Could you specify which destination you'd like to visit and for how many days?"

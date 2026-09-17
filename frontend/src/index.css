@@ -8,6 +8,140 @@
   }
 }
 
+/* ========================================================================= */
+/* LIQUID GLASS HOVER & GLASSMORPHISM SYSTEM                                 */
+/* ========================================================================= */
+
+.liquid-glass {
+  background: rgba(241, 245, 249, 0.9);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1.5px solid rgba(203, 213, 225, 0.95);
+  box-shadow: 0 10px 32px 0 rgba(15, 23, 42, 0.08), 0 2px 8px 0 rgba(5, 150, 105, 0.06);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.liquid-glass:hover {
+  background: rgba(248, 250, 252, 0.98);
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 16px 40px -6px rgba(5, 150, 105, 0.2), 0 0 24px 2px rgba(16, 185, 129, 0.1);
+  transform: translateY(-2px);
+}
+
+.liquid-glass-dark {
+  background: rgba(8, 8, 10, 0.92);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.6);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.liquid-glass-dark:hover {
+  background: rgba(14, 14, 18, 0.98);
+  border-color: rgba(16, 185, 129, 0.55);
+  box-shadow: 0 20px 50px 0 rgba(16, 185, 129, 0.25), 0 0 30px 4px rgba(245, 158, 11, 0.15);
+  transform: translateY(-2px);
+}
+
+.liquid-card {
+  background: rgba(241, 245, 249, 0.92);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1.5px solid rgba(203, 213, 225, 0.95);
+  box-shadow: 0 6px 24px 0 rgba(15, 23, 42, 0.06);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.liquid-card:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(5, 150, 105, 0.65);
+  box-shadow: 0 14px 34px -4px rgba(5, 150, 105, 0.2), 0 4px 14px -2px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px) scale(1.01);
+}
+
+.liquid-card-interactive {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-card-interactive:hover {
+  border-color: rgba(5, 150, 105, 0.6);
+  box-shadow: 0 10px 25px -3px rgba(5, 150, 105, 0.14);
+  transform: translateY(-2px) scale(1.01);
+}
+
+.liquid-btn {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-btn:hover {
+  box-shadow: 0 8px 24px -2px rgba(5, 150, 105, 0.35);
+  transform: translateY(-1.5px) scale(1.02);
+}
+
+.liquid-btn:active {
+  transform: translateY(0.5px) scale(0.98);
+}
+
+/* ========================================================================= */
+/* DARK MODE LIQUID GLASS STYLES (PITCH BLACK & NEON EMERALD/GOLD)           */
+/* ========================================================================= */
+
+.dark .liquid-glass {
+  background: rgba(12, 12, 14, 0.85);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7);
+}
+
+.dark .liquid-glass:hover {
+  background: rgba(18, 18, 22, 0.96);
+  border-color: rgba(16, 185, 129, 0.55);
+  box-shadow: 0 16px 40px -6px rgba(16, 185, 129, 0.25), 0 0 24px 2px rgba(245, 158, 11, 0.15);
+}
+
+.dark .liquid-card {
+  background: rgba(18, 18, 20, 0.82);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.55);
+}
+
+.dark .liquid-card:hover {
+  background: rgba(26, 26, 30, 0.98);
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 14px 34px -4px rgba(16, 185, 129, 0.3), 0 4px 14px -2px rgba(0, 0, 0, 0.4);
+}
+
+.dark .liquid-card-interactive:hover {
+  border-color: rgba(16, 185, 129, 0.65);
+  box-shadow: 0 10px 25px -3px rgba(16, 185, 129, 0.25);
+}
+
+/* Custom dark scrollbar styling */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
 /* Custom Leaflet Map styling overrides */
 .leaflet-container {
   width: 100%;
@@ -17,7 +151,7 @@
 }
 
 .custom-cluster-icon {
-  background-color: #0d9488;
+  background-color: #059669;
   color: white;
   border-radius: 50%;
   display: flex;

@@ -81,8 +81,8 @@ export const ItineraryPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
-        <p className="text-sm font-semibold text-slate-600">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600 dark:text-emerald-400" />
+        <p className="text-sm font-semibold text-slate-600 dark:text-neutral-400">
           Loading optimized travel itinerary...
         </p>
       </div>
@@ -92,14 +92,14 @@ export const ItineraryPage: React.FC = () => {
   if (error || !itineraryData) {
     return (
       <div className="max-w-xl mx-auto py-16 text-center space-y-4">
-        <div className="inline-flex p-3 bg-rose-50 text-rose-600 rounded-2xl">
+        <div className="inline-flex p-3 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-2xl border border-rose-200 dark:border-rose-900/60">
           <AlertCircle className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900">Itinerary Not Found</h2>
-        <p className="text-sm text-slate-500">{error || 'No itinerary data available.'}</p>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Itinerary Not Found</h2>
+        <p className="text-sm text-slate-500 dark:text-neutral-400">{error || 'No itinerary data available.'}</p>
         <button
           onClick={() => navigate('/plan')}
-          className="px-6 py-2.5 bg-teal-600 text-white rounded-xl font-bold text-sm"
+          className="liquid-btn px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black font-extrabold rounded-xl text-sm cursor-pointer shadow-md"
         >
           Create New Plan
         </button>
@@ -114,16 +114,16 @@ export const ItineraryPage: React.FC = () => {
         <div className="space-y-1">
           <button
             onClick={() => navigate('/plan')}
-            className="text-xs text-slate-500 hover:text-teal-600 flex items-center gap-1 mb-1 font-semibold"
+            className="text-xs text-slate-500 dark:text-neutral-400 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-1 mb-1 font-semibold transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Plan Another Trip</span>
           </button>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 capitalize">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white capitalize">
             {tripTitle}
           </h1>
-          <p className="text-xs text-slate-500 flex items-center gap-2">
-            <span className="capitalize font-semibold text-teal-700">
+          <p className="text-xs text-slate-500 dark:text-neutral-400 flex items-center gap-2">
+            <span className="capitalize font-semibold text-emerald-700 dark:text-emerald-400">
               {itineraryData.destination_id}
             </span>
             <span>&bull;</span>
@@ -136,9 +136,9 @@ export const ItineraryPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => window.print()}
-            className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl text-xs flex items-center gap-1.5 hover:bg-slate-50 transition-all cursor-pointer"
+            className="liquid-btn px-4 py-2 bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-200 font-semibold rounded-xl text-xs flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-neutral-800 hover:border-emerald-300 dark:hover:border-emerald-500/50 transition-all cursor-pointer shadow-sm"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
             <span>Export / Print</span>
           </button>
         </div>
@@ -158,10 +158,10 @@ export const ItineraryPage: React.FC = () => {
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
             <button
               onClick={() => setSelectedDay(null)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+              className={`liquid-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer transition-all ${
                 selectedDay === null
-                  ? 'bg-slate-900 text-white shadow-md'
-                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                  ? 'bg-emerald-700 dark:bg-emerald-500 text-white dark:text-black dark:font-extrabold shadow-md'
+                  : 'bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800'
               }`}
             >
               All Days ({itineraryData.days.length})
@@ -171,10 +171,10 @@ export const ItineraryPage: React.FC = () => {
               <button
                 key={`tab-${day.day_number}`}
                 onClick={() => setSelectedDay(day.day_number)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                className={`liquid-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer transition-all ${
                   selectedDay === day.day_number
-                    ? 'bg-teal-600 text-white shadow-md'
-                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                    ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black dark:font-extrabold shadow-md'
+                    : 'bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800'
                 }`}
               >
                 Day {day.day_number}
@@ -194,13 +194,13 @@ export const ItineraryPage: React.FC = () => {
 
         {/* Right Column: Sticky Interactive Leaflet Map (5 Cols) */}
         <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
-          <div className="bg-white rounded-3xl p-4 border border-slate-200 shadow-sm space-y-3">
+          <div className="liquid-glass rounded-3xl p-4 border border-slate-200 dark:border-neutral-800 shadow-sm space-y-3">
             <div className="flex items-center justify-between px-2">
-              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-teal-600" />
+              <span className="text-xs font-bold text-slate-700 dark:text-neutral-300 uppercase tracking-wider flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Spatial Route Map</span>
               </span>
-              <span className="text-xs text-slate-400">OpenStreetMap</span>
+              <span className="text-xs text-slate-400 dark:text-neutral-500 font-mono">OpenStreetMap</span>
             </div>
 
             <div className="h-[480px]">

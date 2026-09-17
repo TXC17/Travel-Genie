@@ -4,7 +4,7 @@ import { ChatSession, SendMessageResponse } from '../types';
 export const chatService = {
   async createSession(title?: string, tripId?: string): Promise<ChatSession> {
     const res = await apiClient.post<ChatSession>('/chat/sessions', {
-      title: title || 'Trip Planning Chat',
+      title: title || 'New Travel Plan',
       trip_id: tripId,
     });
     return res.data;
@@ -18,6 +18,17 @@ export const chatService = {
   async getSession(id: string): Promise<ChatSession> {
     const res = await apiClient.get<ChatSession>(`/chat/sessions/${id}`);
     return res.data;
+  },
+
+  async renameSession(id: string, title: string): Promise<ChatSession> {
+    const res = await apiClient.patch<ChatSession>(`/chat/sessions/${id}`, {
+      title: title.trim(),
+    });
+    return res.data;
+  },
+
+  async deleteSession(id: string): Promise<void> {
+    await apiClient.delete(`/chat/sessions/${id}`);
   },
 
   async sendMessage(sessionId: string, content: string): Promise<SendMessageResponse> {

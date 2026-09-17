@@ -279,3 +279,106 @@ def test_smart_replanning_transport_and_pace_change(client, auth_headers, db_ses
     assert t2_data["replanning_diff"]["is_replanned"] is True
     changed_fields = [c["field"] for c in t2_data["replanning_diff"]["changed_constraints"]]
     assert "preferred_transport" in changed_fields or "pace" in changed_fields
+
+
+def test_greeting_says_hello_back(client, auth_headers):
+    """Verify that saying 'hii' or 'hello' responds with a friendly greeting."""
+    session_res = client.post(
+        "/api/v1/chat/sessions",
+        json={"title": "Greeting Test"},
+        headers=auth_headers,
+    )
+    session_id = session_res.json()["id"]
+
+    msg_res = client.post(
+        f"/api/v1/chat/sessions/{session_id}/messages",
+        json={"content": "hii"},
+        headers=auth_headers,
+    )
+    assert msg_res.status_code == status.HTTP_200_OK
+    data = msg_res.json()
+    assert data["is_clarification"] is True
+    assert "Hello" in data["content"] or "Hi" in data["content"]
+    assert "Hampi, Coorg, Dandeli, or Goa" in data["content"]
+
+
+def test_destination_followed_by_isolated_number_duration(client, auth_headers, db_session):
+    """
+    Verify the multi-turn flow where user specifies destination first,
+    and then replies with just '3' or 'three' when asked for duration.
+    Ensures question is NOT repeated!
+    """
+    seed_database(db_session)
+
+    session_res = client.post(
+        "/api/v1/chat/sessions",
+        json={"title": "Goa Multi-Turn Test"},
+        headers=auth_headers,
+    )
+    session_id = session_res.json()["id"]
+
+    # Turn 1: User says Goa
+    t1_res = client.post(
+        f"/api/v1/chat/sessions/{session_id}/messages",
+        json={"content": "I want to visit Goa"},
+        headers=auth_headers,
+    )
+    assert t1_res.status_code == status.HTTP_200_OK
+    t1_data = t1_res.json()
+    assert t1_data["is_clarification"] is True
+    assert "Goa" in t1_data["content"]
+    assert "How many days" in t1_data["content"]
+
+    # Turn 2: User replies with just "3"
+    t2_res = client.post(
+        f"/api/v1/chat/sessions/{session_id}/messages",
+        json={"content": "3"},
+        headers=auth_headers,
+    )
+    assert t2_res.status_code == status.HTTP_200_OK
+    t2_data = t2_res.json()
+
+    # Must NOT ask again! Must generate itinerary!
+    assert t2_data["is_clarification"] is False
+    assert t2_data["extracted_constraints"]["destination_id"] == "goa"
+    assert t2_data["extracted_constraints"]["duration_days"] == 3
+    assert t2_data["itinerary"] is not None
+    assert t2_data["itinerary"]["total_days"] == 3
+    assert "Goa" in t2_data["content"]
+
+
+def test_rename_and_delete_chat_session(client, auth_headers):
+    """Verify renaming a chat session with custom title and deleting it."""
+    # 1. Create Session
+    create_res = client.post(
+        "/api/v1/chat/sessions",
+        json={"title": "New Travel Plan"},
+        headers=auth_headers,
+    )
+    assert create_res.status_code == status.HTTP_201_CREATED
+    session_id = create_res.json()["id"]
+
+    # 2. Rename Session
+    patch_res = client.patch(
+        f"/api/v1/chat/sessions/{session_id}",
+        json={"title": "My Custom Goa Beach Holiday"},
+        headers=auth_headers,
+    )
+    assert patch_res.status_code == status.HTTP_200_OK
+    assert patch_res.json()["title"] == "My Custom Goa Beach Holiday"
+
+    # 3. Verify in List
+    list_res = client.get("/api/v1/chat/sessions", headers=auth_headers)
+    assert list_res.status_code == status.HTTP_200_OK
+    sessions = list_res.json()
+    assert any(s["id"] == session_id and s["title"] == "My Custom Goa Beach Holiday" for s in sessions)
+
+    # 4. Delete Session
+    del_res = client.delete(f"/api/v1/chat/sessions/{session_id}", headers=auth_headers)
+    assert del_res.status_code == status.HTTP_204_NO_CONTENT
+
+    # 5. Verify Deleted
+    get_res = client.get(f"/api/v1/chat/sessions/{session_id}", headers=auth_headers)
+    assert get_res.status_code == status.HTTP_404_NOT_FOUND
+
+

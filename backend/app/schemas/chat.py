@@ -128,6 +128,12 @@ class ChatSessionCreateRequest(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ChatSessionUpdateRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200, description="New title for the planning session")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class SendMessageRequest(BaseModel):
     content: str = Field(..., min_length=1, description="Natural language user request")
 

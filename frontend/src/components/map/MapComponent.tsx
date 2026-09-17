@@ -68,7 +68,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     : days;
 
   return (
-    <div className="w-full h-full min-h-[420px] rounded-2xl overflow-hidden shadow-inner border border-slate-200 relative">
+    <div className="w-full h-full min-h-[420px] rounded-2xl overflow-hidden shadow-inner border border-slate-200 dark:border-neutral-800 relative">
       <MapContainer
         center={defaultCenter}
         zoom={zoom}
@@ -112,7 +112,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
                 >
                   <Popup className="custom-leaflet-popup">
                     <div className="p-1 min-w-[200px]">
-                      <div className="flex items-center gap-1.5 mb-1 text-xs font-bold uppercase tracking-wider text-teal-700">
+                      <div className="flex items-center gap-1.5 mb-1 text-xs font-bold uppercase tracking-wider text-emerald-700">
                         <span
                           className="w-2.5 h-2.5 rounded-full inline-block"
                           style={{ backgroundColor: color }}
@@ -157,14 +157,14 @@ export const MapComponent: React.FC<MapComponentProps> = ({
       </MapContainer>
 
       {/* Map Legend */}
-      <div className="absolute bottom-4 left-4 z-[400] bg-white/95 backdrop-blur-md rounded-xl p-3 shadow-lg border border-slate-200 text-xs flex flex-wrap gap-3">
-        <span className="font-bold text-slate-700 self-center">Day Legend:</span>
+      <div className="absolute bottom-4 left-4 z-[400] bg-white/95 dark:bg-black/95 backdrop-blur-md rounded-xl p-3 shadow-lg border border-slate-200 dark:border-neutral-800 text-xs flex flex-wrap gap-3">
+        <span className="font-bold text-slate-700 dark:text-neutral-300 self-center">Day Legend:</span>
         {days.map((day) => {
           const color = DAY_COLORS[(day.day_number - 1) % DAY_COLORS.length];
           return (
             <div key={`legend-${day.day_number}`} className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
-              <span className="font-medium text-slate-700">Day {day.day_number}</span>
+              <span className="font-medium text-slate-700 dark:text-neutral-200">Day {day.day_number}</span>
             </div>
           );
         })}

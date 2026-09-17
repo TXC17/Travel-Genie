@@ -61,6 +61,7 @@ from app.schemas.chat import (
     ChatMessageSchema,
     ChatSessionSchema,
     ChatSessionCreateRequest,
+    ChatSessionUpdateRequest,
     SendMessageRequest,
     SendMessageResponse,
 )
@@ -116,6 +117,7 @@ __all__ = [
     "ChatMessageSchema",
     "ChatSessionSchema",
     "ChatSessionCreateRequest",
+    "ChatSessionUpdateRequest",
     "SendMessageRequest",
     "SendMessageResponse",
     "PipelineStageTelemetrySchema",

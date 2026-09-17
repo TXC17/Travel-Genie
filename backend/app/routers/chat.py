@@ -11,6 +11,7 @@ from app.models.user import User
 from app.schemas.chat import (
     ChatSessionSchema,
     ChatSessionCreateRequest,
+    ChatSessionUpdateRequest,
     SendMessageRequest,
     SendMessageResponse,
 )
@@ -54,6 +55,32 @@ def get_chat_session(
     Fetch a specific chat session with its message history, enforcing ownership.
     """
     return service.get_session_by_id(db, session_id, str(current_user.id))
+
+
+@router.patch("/sessions/{session_id}", response_model=ChatSessionSchema)
+def rename_chat_session(
+    session_id: str,
+    request: ChatSessionUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Rename a planning session with a custom user-defined title.
+    """
+    return service.update_session_title(db, session_id, str(current_user.id), request.title)
+
+
+@router.delete("/sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_chat_session(
+    session_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Delete a planning session and its associated chat history.
+    """
+    service.delete_session(db, session_id, str(current_user.id))
+    return None
 
 
 @router.post("/sessions/{session_id}/messages", response_model=SendMessageResponse)
