@@ -60,8 +60,11 @@ export const DayScheduleCard: React.FC<DayScheduleCardProps> = ({ day }) => {
 
       {/* Metrics Summary Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-4 text-center border-b border-slate-100 dark:border-neutral-800 text-xs">
-        <div className="liquid-btn bg-slate-50 dark:bg-neutral-900/70 p-2.5 rounded-xl border border-slate-100 dark:border-neutral-800">
-          <span className="text-slate-400 dark:text-neutral-500 block mb-0.5">Total Distance</span>
+        <div
+          className="liquid-btn bg-slate-50 dark:bg-neutral-900/70 p-2.5 rounded-xl border border-slate-100 dark:border-neutral-800"
+          title="Estimated road distance: calculated from straight-line geographic distance using a 1.30 detour factor. Actual road distances and travel times may differ."
+        >
+          <span className="text-slate-400 dark:text-neutral-500 block mb-0.5">Est. Distance</span>
           <span className="font-bold text-slate-800 dark:text-neutral-100">{day.total_travel_distance_km} km</span>
         </div>
         <div className="liquid-btn bg-slate-50 dark:bg-neutral-900/70 p-2.5 rounded-xl border border-slate-100 dark:border-neutral-800">
@@ -166,10 +169,27 @@ export const DayScheduleCard: React.FC<DayScheduleCardProps> = ({ day }) => {
 
                     <span className="flex items-center gap-1">
                       <DollarSign className="w-3.5 h-3.5 text-slate-400 dark:text-neutral-500" />
-                      {item.item_admission_fee > 0 ? (
-                        <span>Entry: ₹{item.item_admission_fee}</span>
+                      {item.admission_fee_status === 'unknown' || item.item_admission_fee === null || item.item_admission_fee === undefined ? (
+                        <span className="text-amber-600 dark:text-amber-400 font-medium">Fee Unverified</span>
+                      ) : item.item_admission_fee > 0 ? (
+                        <span>
+                          Entry: ₹{item.item_admission_fee}/person
+                          {item.item_group_admission_fee && item.item_group_admission_fee > item.item_admission_fee ? (
+                            <span className="text-slate-400 dark:text-neutral-500 ml-1">
+                              (₹{item.item_group_admission_fee} group)
+                            </span>
+                          ) : null}
+                          {item.is_fee_verified && (
+                            <span className="ml-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold" title="Verified Fee">✓</span>
+                          )}
+                        </span>
                       ) : (
-                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">Free Entry</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                          Free Entry
+                          {item.is_fee_verified && (
+                            <span className="ml-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold" title="Verified Free Entry">✓</span>
+                          )}
+                        </span>
                       )}
                     </span>
 

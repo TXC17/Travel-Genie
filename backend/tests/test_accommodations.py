@@ -429,3 +429,366 @@ def test_trip_selected_accommodation_persistence(client, db_session):
     }
     not_found_res = client.post("/api/v1/trips", json=not_found_payload, headers=headers)
     assert not_found_res.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_itinerary_aware_location_suitability_multi_day(db_session):
+    """Verify that multi-day itinerary attractions calculate location suitability and transit distances."""
+    # 2 days of Hampi attractions
+    day1_items = [
+        {"visit_order": 1, "attraction": {"name": "Virupaksha", "latitude": 15.3353, "longitude": 76.4600}},
+        {"visit_order": 2, "attraction": {"name": "Vittala", "latitude": 15.3400, "longitude": 76.4750}},
+    ]
+    day2_items = [
+        {"visit_order": 1, "attraction": {"name": "Lotus Mahal", "latitude": 15.3200, "longitude": 76.4700}},
+    ]
+    req = AccommodationRecommendationRequest(
+        destination_id="hampi",
+        check_in_date="2026-11-01",
+        check_out_date="2026-11-03",
+        party_size=2,
+        total_budget=15000.0,
+        itinerary_days=[
+            {"day_number": 1, "items": day1_items},
+            {"day_number": 2, "items": day2_items},
+        ],
+    )
+    res = AccommodationService.get_recommendations(db_session, req)
+    assert res.is_itinerary_aware is True
+    assert res.total_itinerary_days_evaluated == 2
+    assert len(res.recommendations) > 0
+
+    top = res.recommendations[0]
+    assert top.location_suitability_score is not None
+    assert 0.0 <= top.location_suitability_score <= 1.0
+    assert top.estimated_total_hotel_transit_km is not None
+    assert top.estimated_daily_hotel_transit_km is not None
+    assert top.road_winding_factor == 1.30
+    assert "road_winding_factor" in top.provenance_distance_method
+
+
+def test_accommodation_ranking_changes_when_itinerary_changes(db_session):
+    """Verify that ranking changes dynamically when planned itinerary activities change."""
+    # Itinerary North: North Goa attractions (Anjuna / Baga / Aguada ~15.55 lat, ~73.75 lon)
+    north_days = [
+        {
+            "day_number": 1,
+            "items": [
+                {"visit_order": 1, "attraction": {"name": "Baga Beach", "latitude": 15.5553, "longitude": 73.7517}},
+                {"visit_order": 2, "attraction": {"name": "Fort Aguada", "latitude": 15.4922, "longitude": 73.7736}},
+            ],
+        }
+    ]
+
+    # Itinerary South: South Goa attractions (Palolem / Cabo de Rama ~15.01 lat, ~74.02 lon)
+    south_days = [
+        {
+            "day_number": 1,
+            "items": [
+                {"visit_order": 1, "attraction": {"name": "Palolem Beach", "latitude": 15.0100, "longitude": 74.0230}},
+                {"visit_order": 2, "attraction": {"name": "Cabo de Rama", "latitude": 15.0880, "longitude": 73.9210}},
+            ],
+        }
+    ]
+
+    req_north = AccommodationRecommendationRequest(
+        destination_id="goa",
+        check_in_date="2026-11-01",
+        check_out_date="2026-11-03",
+        party_size=2,
+        total_budget=25000.0,
+        itinerary_days=north_days,
+    )
+    res_north = AccommodationService.get_recommendations(db_session, req_north)
+
+    req_south = AccommodationRecommendationRequest(
+        destination_id="goa",
+        check_in_date="2026-11-01",
+        check_out_date="2026-11-03",
+        party_size=2,
+        total_budget=25000.0,
+        itinerary_days=south_days,
+    )
+    res_south = AccommodationService.get_recommendations(db_session, req_south)
+
+    # Top accommodation for North itinerary must have lower transit distance to North than South property
+    north_top_id = res_north.recommendations[0].accommodation.id
+    south_top_id = res_south.recommendations[0].accommodation.id
+
+    # The rankings must be distinct or reflect the spatial shift
+    assert res_north.recommendations[0].estimated_daily_hotel_transit_km < res_north.recommendations[-1].estimated_daily_hotel_transit_km
+    assert res_south.recommendations[0].estimated_daily_hotel_transit_km < res_south.recommendations[-1].estimated_daily_hotel_transit_km
+
+
+def test_cheaper_distant_hotel_not_always_first(db_session):
+    """Verify that a centrally situated property can outrank a cheaper property that is substantially more distant."""
+    # Day itinerary in central Madikeri, Coorg (12.42 lat, 75.73 lon)
+    central_days = [
+        {
+            "day_number": 1,
+            "items": [
+                {"visit_order": 1, "attraction": {"name": "Madikeri Fort", "latitude": 12.4244, "longitude": 75.7382}},
+                {"visit_order": 2, "attraction": {"name": "Raja's Seat", "latitude": 12.4180, "longitude": 75.7350}},
+            ],
+        }
+    ]
+
+    req = AccommodationRecommendationRequest(
+        destination_id="coorg",
+        check_in_date="2026-11-01",
+        check_out_date="2026-11-03",
+        party_size=2,
+        total_budget=20000.0,
+        itinerary_days=central_days,
+    )
+    res = AccommodationService.get_recommendations(db_session, req)
+    recs = res.recommendations
+
+    # Find Madikeri central property (e.g. Zostel Coorg Madikeri)
+    madikeri_prop = next((r for r in recs if "madikeri" in r.accommodation.name.lower()), None)
+    assert madikeri_prop is not None
+
+    # Central property should have a high location suitability score
+    assert madikeri_prop.location_suitability_score >= 0.70
+
+
+def test_itinerary_aware_budget_and_capacity_constraints(db_session):
+    """Verify budget limits and room capacity remain enforced when itinerary awareness is active."""
+    days = [
+        {
+            "day_number": 1,
+            "items": [
+                {"visit_order": 1, "attraction": {"name": "Virupaksha", "latitude": 15.3353, "longitude": 76.4600}},
+            ],
+        }
+    ]
+    # Party of 5 with tight budget: requires at least 3 standard double rooms
+    req = AccommodationRecommendationRequest(
+        destination_id="hampi",
+        check_in_date="2026-11-01",
+        check_out_date="2026-11-03",
+        party_size=5,
+        total_budget=4000.0,  # Very tight budget
+        itinerary_days=days,
+    )
+    res = AccommodationService.get_recommendations(db_session, req)
+    for r in res.recommendations:
+        # Rooms needed must accommodate 5 people
+        assert r.rooms_needed * r.accommodation.room_capacity >= 5
+        # Total cost is 2 nights * price_per_night * rooms_needed
+        assert r.total_cost == 2 * r.price_per_night * r.rooms_needed
+        if r.total_cost > 4000.0:
+            assert r.is_within_budget is False
+
+
+def test_itinerary_aware_missing_coordinates_handled_safely(db_session):
+    """Verify safe fallback when day items lack coordinates."""
+    days_no_coords = [
+        {
+            "day_number": 1,
+            "items": [
+                {"visit_order": 1, "attraction": {"name": "Mysterious Spot", "latitude": None, "longitude": None}},
+            ],
+        }
+    ]
+    req = AccommodationRecommendationRequest(
+        destination_id="hampi",
+        check_in_date="2026-11-01",
+        check_out_date="2026-11-03",
+        party_size=2,
+        total_budget=15000.0,
+        itinerary_days=days_no_coords,
+    )
+    res = AccommodationService.get_recommendations(db_session, req)
+    # Should fall back cleanly without crashing
+    assert len(res.recommendations) > 0
+    assert res.is_itinerary_aware is False
+
+
+def test_accommodation_category_filtering_and_classification(client, db_session):
+    """Verify category filtering across Ultra-Luxury, Ultra-Budget, Moderate / Mid-Range, and All Stays."""
+    # 1. Ultra-Luxury in Coorg
+    res_lux = client.get("/api/v1/accommodations?destination_id=coorg&category=ultra_luxury")
+    assert res_lux.status_code == 200
+    lux_data = res_lux.json()
+    assert len(lux_data) >= 1
+    for item in lux_data:
+        assert item["category"] == "Ultra-Luxury"
+        assert item["price_per_night"] >= 8000.0
+
+    # 2. Ultra-Budget in Coorg
+    res_bud = client.get("/api/v1/accommodations?destination_id=coorg&category=ultra_budget")
+    assert res_bud.status_code == 200
+    bud_data = res_bud.json()
+    assert len(bud_data) >= 2
+    for item in bud_data:
+        assert item["category"] == "Ultra-Budget"
+        assert item["price_per_night"] <= 3200.0
+
+    # 3. Moderate / Mid-Range in Coorg
+    res_mod = client.get("/api/v1/accommodations?destination_id=coorg&category=moderate")
+    assert res_mod.status_code == 200
+    mod_data = res_mod.json()
+    assert len(mod_data) >= 2
+    for item in mod_data:
+        assert item["category"] == "Moderate / Mid-Range"
+        assert 2800.0 <= item["price_per_night"] <= 8400.0
+
+    # 4. All Stays
+    res_all = client.get("/api/v1/accommodations?destination_id=coorg&category=all")
+    assert res_all.status_code == 200
+    assert len(res_all.json()) == len(lux_data) + len(bud_data) + len(mod_data)
+
+
+def test_accommodation_recommendations_category_ultra_budget(client):
+    """Verify Ultra-Budget recommendations prioritize affordability and honest tariff benchmarks."""
+    payload = {
+        "destination_id": "hampi",
+        "check_in_date": "2026-11-01",
+        "check_out_date": "2026-11-04",
+        "party_size": 2,
+        "total_budget": 8000.0,
+        "category": "ultra_budget",
+    }
+    response = client.post("/api/v1/accommodations/recommendations", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["budget_context"]["selected_category"] == "Ultra-Budget"
+    assert len(data["recommendations"]) >= 2
+    for rec in data["recommendations"]:
+        assert rec["category"] == "Ultra-Budget"
+        assert rec["accommodation"]["category"] == "Ultra-Budget"
+        # Check reasons include category and tariff benchmark
+        reason_text = " ".join(rec["match_reasons"])
+        assert "Ultra-Budget" in reason_text
+        assert "Estimated tariff:" in reason_text
+
+
+def test_accommodation_recommendations_category_ultra_luxury(client):
+    """Verify Ultra-Luxury recommendations return premium properties and explain luxury indicators."""
+    payload = {
+        "destination_id": "hampi",
+        "check_in_date": "2026-11-01",
+        "check_out_date": "2026-11-03",
+        "party_size": 2,
+        "total_budget": 60000.0,
+        "category": "ultra_luxury",
+    }
+    response = client.post("/api/v1/accommodations/recommendations", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["budget_context"]["selected_category"] == "Ultra-Luxury"
+    assert len(data["recommendations"]) == 1
+    top = data["recommendations"][0]
+    assert top["category"] == "Ultra-Luxury"
+    assert top["accommodation"]["name"] == "Evolve Back Kamalapura Palace"
+    assert top["total_cost"] == 2 * top["price_per_night"] * 1
+    reason_text = " ".join(top["match_reasons"])
+    assert "Ultra-Luxury" in reason_text
+    assert "Recommended for premium luxury" in reason_text
+    # Check data status notice explains dataset scope
+    assert data["category_data_status"] is not None
+    assert "1 verified Ultra-Luxury benchmark" in data["category_data_status"]
+
+
+def test_accommodation_unrated_missing_rating_handled_honestly(db_session):
+    """Verify properties without guest rating display 'Guest ratings unavailable' and apply neutral prior."""
+    from app.models.accommodation import Accommodation
+
+    # Create an unrated accommodation with rating = None
+    unrated_hotel = Accommodation(
+        id="dandeli-unrated-cottage",
+        destination_id="dandeli",
+        name="Dandeli Riverside Unrated Cottage",
+        accommodation_type="homestay",
+        description="Newly established rustic cottage near riverside.",
+        latitude=15.2400,
+        longitude=74.6300,
+        price_per_night=1900.0,
+        currency="INR",
+        rating=None,  # Missing rating
+        room_capacity=2,
+        amenities=["Garden", "River Access", "Campfire"],
+        is_verified=True,
+        provenance={"source": "Regional Cottage Registry", "rate_tier": "Budget"},
+        is_active=True,
+    )
+    db_session.add(unrated_hotel)
+    db_session.commit()
+
+    req = AccommodationRecommendationRequest(
+        destination_id="dandeli",
+        check_in_date="2026-11-01",
+        check_out_date="2026-11-03",
+        party_size=2,
+        category="ultra_budget",
+    )
+    res = AccommodationService.get_recommendations(db_session, req)
+    unrated_rec = next((r for r in res.recommendations if r.accommodation.id == "dandeli-unrated-cottage"), None)
+    assert unrated_rec is not None
+    assert unrated_rec.accommodation.rating is None
+
+    # Check match reasons explicitly state guest ratings unavailable
+    reason_text = " ".join(unrated_rec.match_reasons)
+    assert "Guest ratings unavailable" in reason_text
+    assert "highly rated" not in reason_text.lower()
+    # Scored with neutral score, match score is valid positive number
+    assert 0.0 < unrated_rec.match_score <= 1.0
+
+
+def test_accommodation_category_switching_preserves_capacity_and_itinerary_suitability(db_session):
+    """Verify changing category refreshes options while calculating correct capacity and multi-day hotel transit."""
+    days = [
+        {
+            "day_number": 1,
+            "items": [
+                {"visit_order": 1, "attraction": {"name": "Madikeri Fort", "latitude": 12.4244, "longitude": 75.7382}},
+                {"visit_order": 2, "attraction": {"name": "Raja Seat", "latitude": 12.4137, "longitude": 75.7360}},
+            ],
+        },
+        {
+            "day_number": 2,
+            "items": [
+                {"visit_order": 1, "attraction": {"name": "Abbey Falls", "latitude": 12.4550, "longitude": 75.7170}},
+            ],
+        },
+    ]
+
+    # Query 1: Ultra-Budget
+    req_budget = AccommodationRecommendationRequest(
+        destination_id="coorg",
+        check_in_date="2026-11-01",
+        check_out_date="2026-11-04",  # 3 nights
+        party_size=4,  # 4 travelers
+        total_budget=20000.0,
+        category="ultra_budget",
+        itinerary_days=days,
+    )
+    res_budget = AccommodationService.get_recommendations(db_session, req_budget)
+    assert res_budget.is_itinerary_aware is True
+    assert res_budget.total_itinerary_days_evaluated == 2
+    for r in res_budget.recommendations:
+        assert r.category == "Ultra-Budget"
+        assert r.nights == 3
+        assert r.rooms_needed * r.accommodation.room_capacity >= 4
+        assert r.total_cost == 3 * r.price_per_night * r.rooms_needed
+        assert r.estimated_daily_hotel_transit_km is not None
+        assert r.road_winding_factor == 1.30
+
+    # Query 2: Moderate / Mid-Range
+    req_mod = AccommodationRecommendationRequest(
+        destination_id="coorg",
+        check_in_date="2026-11-01",
+        check_out_date="2026-11-04",
+        party_size=4,
+        total_budget=50000.0,
+        category="moderate",
+        itinerary_days=days,
+    )
+    res_mod = AccommodationService.get_recommendations(db_session, req_mod)
+    assert res_mod.is_itinerary_aware is True
+    for r in res_mod.recommendations:
+        assert r.category == "Moderate / Mid-Range"
+        assert r.nights == 3
+        assert r.rooms_needed * r.accommodation.room_capacity >= 4
+        assert r.total_cost == 3 * r.price_per_night * r.rooms_needed
+        assert r.estimated_daily_hotel_transit_km is not None

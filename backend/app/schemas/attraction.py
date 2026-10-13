@@ -25,7 +25,7 @@ class AttractionResponse(BaseModel):
     latitude: float
     longitude: float
     average_visit_duration: float
-    entry_fee: float = 0.0
+    entry_fee: Optional[float] = 0.0
     popularity_score: Optional[float] = 0.5
     rating: Optional[float] = 4.0
     opening_time: Optional[str] = None

@@ -11,7 +11,14 @@
     "currency": "INR",
     "rating": 4.3,
     "room_capacity": 2,
-    "amenities": ["Breakfast Included", "River View", "Nature Walk", "Parking", "Restaurant", "Campfire"],
+    "amenities": [
+      "Breakfast Included",
+      "River View",
+      "Nature Walk",
+      "Parking",
+      "Restaurant",
+      "Campfire"
+    ],
     "image_url": "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6",
     "booking_url": "https://www.junglelodges.com/resort/kali-adventure-camp/",
     "contact_phone": "+91-8284-233266",
@@ -23,7 +30,8 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Ultra-Budget"
     },
     "is_active": true
   },
@@ -39,7 +47,13 @@
     "currency": "INR",
     "rating": 4.1,
     "room_capacity": 3,
-    "amenities": ["Home Cooked Meals", "Campfire", "Guided Trek", "Free Parking", "Pet Friendly"],
+    "amenities": [
+      "Home Cooked Meals",
+      "Campfire",
+      "Guided Trek",
+      "Free Parking",
+      "Pet Friendly"
+    ],
     "image_url": "https://images.unsplash.com/photo-1587061949409-02df41d5e562",
     "booking_url": null,
     "contact_phone": null,
@@ -51,7 +65,8 @@
       "property_status": "ESTIMATED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "ESTIMATED"
+      "provenance_badge": "ESTIMATED",
+      "category": "Ultra-Budget"
     },
     "is_active": true
   },
@@ -67,7 +82,15 @@
     "currency": "INR",
     "rating": 4.4,
     "room_capacity": 2,
-    "amenities": ["Swimming Pool", "River View", "Air Conditioning", "WiFi", "Restaurant", "Water Sports Desk", "Free Breakfast"],
+    "amenities": [
+      "Swimming Pool",
+      "River View",
+      "Air Conditioning",
+      "WiFi",
+      "Restaurant",
+      "Water Sports Desk",
+      "Free Breakfast"
+    ],
     "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945",
     "booking_url": "https://starlingriverresort.com",
     "contact_phone": "+91-8284-230005",
@@ -79,7 +102,8 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Moderate / Mid-Range"
     },
     "is_active": true
   },
@@ -95,7 +119,15 @@
     "currency": "INR",
     "rating": 4.5,
     "room_capacity": 2,
-    "amenities": ["Air Conditioning", "Swimming Pool", "Kayaking & Rafting", "Restaurant", "River Balcony", "Free Breakfast", "WiFi"],
+    "amenities": [
+      "Air Conditioning",
+      "Swimming Pool",
+      "Kayaking & Rafting",
+      "Restaurant",
+      "River Balcony",
+      "Free Breakfast",
+      "WiFi"
+    ],
     "image_url": "https://images.unsplash.com/photo-1540555700478-4be289fbecef",
     "booking_url": "https://www.bisonriverresortdandeli.com",
     "contact_phone": "+91-8284-232111",
@@ -107,7 +139,8 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Moderate / Mid-Range"
     },
     "is_active": true
   },
@@ -123,7 +156,15 @@
     "currency": "INR",
     "rating": 4.6,
     "room_capacity": 2,
-    "amenities": ["Luxury Cottages", "Swimming Pool", "Ziplining", "Tree House Options", "Air Conditioning", "Multi-cuisine Buffet", "Spa"],
+    "amenities": [
+      "Luxury Cottages",
+      "Swimming Pool",
+      "Ziplining",
+      "Tree House Options",
+      "Air Conditioning",
+      "Multi-cuisine Buffet",
+      "Spa"
+    ],
     "image_url": "https://images.unsplash.com/photo-1582719508461-905c673771fd",
     "booking_url": "https://www.whistlingwoodz.com",
     "contact_phone": null,
@@ -135,11 +176,11 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Ultra-Luxury"
     },
     "is_active": true
   },
-
   {
     "id": "coorg-zostel-homestay",
     "destination_id": "coorg",
@@ -152,7 +193,14 @@
     "currency": "INR",
     "rating": 4.4,
     "room_capacity": 2,
-    "amenities": ["High-speed WiFi", "Cafe", "Bonfire Terrace", "Luggage Storage", "Workstation Desk", "Mountain View"],
+    "amenities": [
+      "High-speed WiFi",
+      "Cafe",
+      "Bonfire Terrace",
+      "Luggage Storage",
+      "Workstation Desk",
+      "Mountain View"
+    ],
     "image_url": "https://images.unsplash.com/photo-1555854877-bab0e564b8d5",
     "booking_url": "https://www.zostel.com/zostel/coorg/",
     "contact_phone": "+91-22-48962266",
@@ -164,7 +212,8 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Ultra-Budget"
     },
     "is_active": true
   },
@@ -180,7 +229,14 @@
     "currency": "INR",
     "rating": 4.5,
     "room_capacity": 3,
-    "amenities": ["Plantation Tour", "Authentic Kodava Meals", "Free Parking", "WiFi", "Estate Walking Trails", "Power Backup"],
+    "amenities": [
+      "Plantation Tour",
+      "Authentic Kodava Meals",
+      "Free Parking",
+      "WiFi",
+      "Estate Walking Trails",
+      "Power Backup"
+    ],
     "image_url": "https://images.unsplash.com/photo-1613977257363-707ba9348227",
     "booking_url": null,
     "contact_phone": null,
@@ -192,7 +248,8 @@
       "property_status": "ESTIMATED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "ESTIMATED"
+      "provenance_badge": "ESTIMATED",
+      "category": "Ultra-Budget"
     },
     "is_active": true
   },
@@ -202,13 +259,21 @@
     "name": "Heritage Resort Madikeri",
     "accommodation_type": "resort",
     "description": "Hilltop luxury eco-resort surrounded by verdant valleys. Features Ayurvedic wellness spa, infinity swimming pool, organic garden dining, and bicycle rentals.",
-    "latitude": 12.4590,
+    "latitude": 12.459,
     "longitude": 75.7025,
     "price_per_night": 5500.0,
     "currency": "INR",
     "rating": 4.3,
     "room_capacity": 2,
-    "amenities": ["Swimming Pool", "Ayurvedic Spa", "Restaurant", "Air Conditioning", "WiFi", "Valley View", "Free Breakfast"],
+    "amenities": [
+      "Swimming Pool",
+      "Ayurvedic Spa",
+      "Restaurant",
+      "Air Conditioning",
+      "WiFi",
+      "Valley View",
+      "Free Breakfast"
+    ],
     "image_url": "https://images.unsplash.com/photo-1571896349842-33c89424de2d",
     "booking_url": "https://www.heritageresortscoorg.com",
     "contact_phone": "+91-8272-265600",
@@ -220,7 +285,8 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Moderate / Mid-Range"
     },
     "is_active": true
   },
@@ -236,7 +302,15 @@
     "currency": "INR",
     "rating": 4.4,
     "room_capacity": 2,
-    "amenities": ["Swimming Pool", "Spa & Wellness", "Kids Play Area", "Multi-Cuisine Dining", "Fitness Center", "WiFi", "Air Conditioning"],
+    "amenities": [
+      "Swimming Pool",
+      "Spa & Wellness",
+      "Kids Play Area",
+      "Multi-Cuisine Dining",
+      "Fitness Center",
+      "WiFi",
+      "Air Conditioning"
+    ],
     "image_url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb",
     "booking_url": "https://www.clubmahindra.com/resorts/club-mahindra-virajpet-coorg",
     "contact_phone": "+91-8274-256600",
@@ -248,7 +322,8 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Moderate / Mid-Range"
     },
     "is_active": true
   },
@@ -264,7 +339,15 @@
     "currency": "INR",
     "rating": 4.8,
     "room_capacity": 2,
-    "amenities": ["Heated Infinity Pool", "Jiva Luxury Spa", "Fine Dining", "Air Conditioning", "Rainforest Balcony", "Butler Service", "WiFi"],
+    "amenities": [
+      "Heated Infinity Pool",
+      "Jiva Luxury Spa",
+      "Fine Dining",
+      "Air Conditioning",
+      "Rainforest Balcony",
+      "Butler Service",
+      "WiFi"
+    ],
     "image_url": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
     "booking_url": "https://www.tajhotels.com/en-in/taj/taj-madikeri-coorg/",
     "contact_phone": "+91-8272-667000",
@@ -276,11 +359,11 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Ultra-Luxury"
     },
     "is_active": true
   },
-
   {
     "id": "hampi-padma-guesthouse",
     "destination_id": "hampi",
@@ -293,7 +376,14 @@
     "currency": "INR",
     "rating": 4.2,
     "room_capacity": 2,
-    "amenities": ["Rooftop Cafe", "Temple View", "Bicycle Rental Desk", "Free WiFi", "Power Backup", "Tour Guide Support"],
+    "amenities": [
+      "Rooftop Cafe",
+      "Temple View",
+      "Bicycle Rental Desk",
+      "Free WiFi",
+      "Power Backup",
+      "Tour Guide Support"
+    ],
     "image_url": "https://images.unsplash.com/photo-1566665797739-1674de7a421a",
     "booking_url": null,
     "contact_phone": null,
@@ -305,7 +395,8 @@
       "property_status": "ESTIMATED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "ESTIMATED"
+      "provenance_badge": "ESTIMATED",
+      "category": "Ultra-Budget"
     },
     "is_active": true
   },
@@ -316,12 +407,19 @@
     "accommodation_type": "guesthouse",
     "description": "Serene riverside retreat located across the Tungabhadra River in Sanapur. Known for private cottages with hammock balconies overlooking emerald paddy fields.",
     "latitude": 15.3421,
-    "longitude": 76.4520,
+    "longitude": 76.452,
     "price_per_night": 1700.0,
     "currency": "INR",
     "rating": 4.3,
     "room_capacity": 2,
-    "amenities": ["Paddy Field View", "Hammock Verandah", "Garden Restaurant", "Scooter Rental", "Free WiFi", "Laundry"],
+    "amenities": [
+      "Paddy Field View",
+      "Hammock Verandah",
+      "Garden Restaurant",
+      "Scooter Rental",
+      "Free WiFi",
+      "Laundry"
+    ],
     "image_url": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4",
     "booking_url": null,
     "contact_phone": null,
@@ -333,7 +431,8 @@
       "property_status": "ESTIMATED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "ESTIMATED"
+      "provenance_badge": "ESTIMATED",
+      "category": "Ultra-Budget"
     },
     "is_active": true
   },
@@ -349,7 +448,14 @@
     "currency": "INR",
     "rating": 4.1,
     "room_capacity": 2,
-    "amenities": ["Air Conditioning", "Restaurant & Bar", "Spacious Parking", "Garden", "KSTDC Tour Booking Desk", "WiFi"],
+    "amenities": [
+      "Air Conditioning",
+      "Restaurant & Bar",
+      "Spacious Parking",
+      "Garden",
+      "KSTDC Tour Booking Desk",
+      "WiFi"
+    ],
     "image_url": "https://images.unsplash.com/photo-1590490360182-c33d57733427",
     "booking_url": "https://kstdc.co/hotels/hotel-mayura-bhuvaneshwari-kamalapur-hampi/",
     "contact_phone": "+91-8394-241580",
@@ -361,7 +467,8 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Moderate / Mid-Range"
     },
     "is_active": true
   },
@@ -377,7 +484,15 @@
     "currency": "INR",
     "rating": 4.5,
     "room_capacity": 2,
-    "amenities": ["Swimming Pool", "Spa & Wellness", "Organic Farm Restaurant", "Air Conditioning", "WiFi", "Cultural Performances", "Free Breakfast"],
+    "amenities": [
+      "Swimming Pool",
+      "Spa & Wellness",
+      "Organic Farm Restaurant",
+      "Air Conditioning",
+      "WiFi",
+      "Cultural Performances",
+      "Free Breakfast"
+    ],
     "image_url": "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9",
     "booking_url": "https://www.heritageresortshampi.com",
     "contact_phone": "+91-8394-241600",
@@ -389,7 +504,8 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Moderate / Mid-Range"
     },
     "is_active": true
   },
@@ -400,12 +516,20 @@
     "accommodation_type": "resort",
     "description": "Regal architectural palace resort echoing the 14th-century Vijayanagara Empire grandeur. Features private pool suites, Vaidyasala Ayurveda spa, and royal dining halls.",
     "latitude": 15.2986,
-    "longitude": 76.4930,
+    "longitude": 76.493,
     "price_per_night": 22000.0,
     "currency": "INR",
     "rating": 4.9,
     "room_capacity": 2,
-    "amenities": ["Private Pool Suites", "Infinity Pool", "Vaidyasala Ayurvedic Spa", "Fine Dining", "Air Conditioning", "Historian Guided Walks", "WiFi"],
+    "amenities": [
+      "Private Pool Suites",
+      "Infinity Pool",
+      "Vaidyasala Ayurvedic Spa",
+      "Fine Dining",
+      "Air Conditioning",
+      "Historian Guided Walks",
+      "WiFi"
+    ],
     "image_url": "https://images.unsplash.com/photo-1549294413-26f195200c16",
     "booking_url": "https://www.evolveback.com/hampi/",
     "contact_phone": "+91-80-41911122",
@@ -417,11 +541,11 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Ultra-Luxury"
     },
     "is_active": true
   },
-
   {
     "id": "goa-old-quarter-hostel",
     "destination_id": "goa",
@@ -434,7 +558,14 @@
     "currency": "INR",
     "rating": 4.4,
     "room_capacity": 2,
-    "amenities": ["Heritage Neighborhood", "Artisanal Cafe", "High-speed WiFi", "Air Conditioning", "Bicycle Rental", "Walking Tours"],
+    "amenities": [
+      "Heritage Neighborhood",
+      "Artisanal Cafe",
+      "High-speed WiFi",
+      "Air Conditioning",
+      "Bicycle Rental",
+      "Walking Tours"
+    ],
     "image_url": "https://images.unsplash.com/photo-1555854877-bab0e564b8d5",
     "booking_url": "https://thehostelcrowd.com/theoldquarter/",
     "contact_phone": "+91-832-2432145",
@@ -446,7 +577,8 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Ultra-Budget"
     },
     "is_active": true
   },
@@ -462,7 +594,14 @@
     "currency": "INR",
     "rating": 4.3,
     "room_capacity": 2,
-    "amenities": ["Direct Beach Access", "2 Swimming Pools", "Air Conditioning", "Poolside Bar & Restaurant", "Free Breakfast", "WiFi"],
+    "amenities": [
+      "Direct Beach Access",
+      "2 Swimming Pools",
+      "Air Conditioning",
+      "Poolside Bar & Restaurant",
+      "Free Breakfast",
+      "WiFi"
+    ],
     "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
     "booking_url": "https://www.santanagoa.com",
     "contact_phone": "+91-832-2489467",
@@ -474,7 +613,8 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Ultra-Budget"
     },
     "is_active": true
   },
@@ -490,7 +630,15 @@
     "currency": "INR",
     "rating": 4.4,
     "room_capacity": 2,
-    "amenities": ["Swimming Pool", "Live Music Stage", "Fitness Center", "Air Conditioning", "WiFi", "Multi-cuisine Restaurant", "Sound of Your Stay Music"],
+    "amenities": [
+      "Swimming Pool",
+      "Live Music Stage",
+      "Fitness Center",
+      "Air Conditioning",
+      "WiFi",
+      "Multi-cuisine Restaurant",
+      "Sound of Your Stay Music"
+    ],
     "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945",
     "booking_url": "https://www.hardrockhotels.com/goa",
     "contact_phone": "+91-832-6745555",
@@ -502,7 +650,8 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Moderate / Mid-Range"
     },
     "is_active": true
   },
@@ -518,7 +667,15 @@
     "currency": "INR",
     "rating": 4.6,
     "room_capacity": 2,
-    "amenities": ["Seaside Beachfront", "Swimming Pool", "Watersports Desk", "Air Conditioning", "Spa", "Multiple Restaurants", "WiFi"],
+    "amenities": [
+      "Seaside Beachfront",
+      "Swimming Pool",
+      "Watersports Desk",
+      "Air Conditioning",
+      "Spa",
+      "Multiple Restaurants",
+      "WiFi"
+    ],
     "image_url": "https://images.unsplash.com/photo-1571896349842-33c89424de2d",
     "booking_url": "https://www.seleqtionshotels.com/en-in/cidade-de-goa/",
     "contact_phone": "+91-832-2454545",
@@ -530,7 +687,8 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Moderate / Mid-Range"
     },
     "is_active": true
   },
@@ -546,7 +704,15 @@
     "currency": "INR",
     "rating": 4.8,
     "room_capacity": 2,
-    "amenities": ["Seafront Views", "Historic Ramparts", "Jiva Spa", "Swimming Pool", "Fine Coastal Dining", "Air Conditioning", "WiFi"],
+    "amenities": [
+      "Seafront Views",
+      "Historic Ramparts",
+      "Jiva Spa",
+      "Swimming Pool",
+      "Fine Coastal Dining",
+      "Air Conditioning",
+      "WiFi"
+    ],
     "image_url": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
     "booking_url": "https://www.tajhotels.com/en-in/taj/taj-fort-aguada-goa/",
     "contact_phone": "+91-832-6645858",
@@ -558,7 +724,8 @@
       "property_status": "VERIFIED",
       "price_status": "ESTIMATED",
       "rate_type": "curated_empirical_benchmark",
-      "provenance_badge": "VERIFIED"
+      "provenance_badge": "VERIFIED",
+      "category": "Ultra-Luxury"
     },
     "is_active": true
   }

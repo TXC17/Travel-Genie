@@ -28,7 +28,7 @@ class Accommodation(Base, TimestampMixin):
     longitude: Mapped[float] = mapped_column(Float, nullable=False)
     price_per_night: Mapped[float] = mapped_column(Float, nullable=False)  # Base room rate in INR
     currency: Mapped[str] = mapped_column(String(10), default="INR", nullable=False)
-    rating: Mapped[float] = mapped_column(Float, default=4.0, nullable=False)
+    rating: Mapped[Optional[float]] = mapped_column(Float, default=None, nullable=True)
     room_capacity: Mapped[int] = mapped_column(Integer, default=2, nullable=False)
     amenities: Mapped[list] = mapped_column(JSON, default=list, nullable=False)
     image_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
@@ -41,3 +41,24 @@ class Accommodation(Base, TimestampMixin):
     # Relationships
     destination: Mapped["Destination"] = relationship("Destination", back_populates="accommodations")
     trips: Mapped[List["Trip"]] = relationship("Trip", back_populates="selected_accommodation")
+
+    @property
+    def category(self) -> str:
+        """Classify into Ultra-Luxury, Ultra-Budget, or Moderate / Mid-Range."""
+        prov = self.provenance if isinstance(self.provenance, dict) else {}
+        if prov.get("category"):
+            return str(prov["category"])
+        tier = str(prov.get("rate_tier") or "").lower()
+        if tier == "luxury" or self.price_per_night >= 8000:
+            return "Ultra-Luxury"
+        if tier == "budget" or self.price_per_night <= 2600 or (
+            self.accommodation_type in ["hostel", "guesthouse"] and self.price_per_night <= 3200
+        ):
+            return "Ultra-Budget"
+        return "Moderate / Mid-Range"
+
+    @property
+    def review_count(self) -> Optional[int]:
+        """Documented review count from provenance metadata, if available."""
+        prov = self.provenance if isinstance(self.provenance, dict) else {}
+        return prov.get("review_count")

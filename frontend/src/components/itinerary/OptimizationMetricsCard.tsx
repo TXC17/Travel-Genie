@@ -1,6 +1,6 @@
 import React from 'react';
 import { MultiDayTripOptimizationResponse } from '../../types';
-import { TrendingDown, Navigation, Clock, DollarSign, Award, ShieldCheck } from 'lucide-react';
+import { TrendingDown, Navigation, Clock, DollarSign, Award, ShieldCheck, Info } from 'lucide-react';
 
 interface OptimizationMetricsCardProps {
   itinerary: MultiDayTripOptimizationResponse;
@@ -35,7 +35,7 @@ export const OptimizationMetricsCard: React.FC<OptimizationMetricsCardProps> = (
         <div className="liquid-btn bg-white/95 dark:bg-neutral-900/80 border-2 border-slate-300 dark:border-neutral-800 p-4 rounded-xl shadow-xs">
           <div className="flex items-center gap-1.5 text-slate-600 dark:text-neutral-400 text-xs mb-1 font-semibold">
             <Navigation className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
-            <span>Total Road Travel</span>
+            <span>Est. Road Travel</span>
           </div>
           <p className="text-xl md:text-2xl font-black text-slate-950 dark:text-white">
             {itinerary.total_travel_distance_km} <span className="text-sm font-semibold text-slate-600 dark:text-neutral-400">km</span>
@@ -62,15 +62,28 @@ export const OptimizationMetricsCard: React.FC<OptimizationMetricsCardProps> = (
           </p>
         </div>
 
-        <div className="liquid-btn bg-white/95 dark:bg-neutral-900/80 border-2 border-slate-300 dark:border-neutral-800 p-4 rounded-xl shadow-xs">
-          <div className="flex items-center gap-1.5 text-slate-600 dark:text-neutral-400 text-xs mb-1 font-semibold">
-            <DollarSign className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
-            <span>Est. Total Cost</span>
+        <div className="liquid-btn bg-white/95 dark:bg-neutral-900/80 border-2 border-slate-300 dark:border-neutral-800 p-4 rounded-xl shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-1.5 text-slate-600 dark:text-neutral-400 text-xs mb-1 font-semibold">
+              <DollarSign className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
+              <span>Sightseeing & Local Transit Cost</span>
+            </div>
+            <p className="text-xl md:text-2xl font-black text-amber-800 dark:text-amber-300">
+              ₹{itinerary.total_estimated_cost.toLocaleString()}
+            </p>
           </div>
-          <p className="text-xl md:text-2xl font-black text-amber-800 dark:text-amber-300">
-            ₹{itinerary.total_estimated_cost.toLocaleString()}
+          <p className="text-[10px] text-slate-500 dark:text-neutral-400 mt-2 leading-snug font-medium">
+            Includes attraction entry fees and estimated local transit. Excludes accommodation, intercity travel, meals, and incidental expenses.
           </p>
         </div>
+      </div>
+
+      {/* Estimated Distance Methodology Disclosure */}
+      <div className="mt-4 pt-3 border-t border-emerald-200/80 dark:border-neutral-800/80 flex items-start gap-2 text-[11px] text-slate-600 dark:text-neutral-400 font-medium relative z-10">
+        <Info className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5" />
+        <span>
+          Estimated road distance: calculated from straight-line geographic distance using a 1.30 detour factor. Actual road distances and travel times may differ.
+        </span>
       </div>
     </div>
   );

@@ -82,3 +82,20 @@ def test_create_and_manage_trip(client, db_session):
     # 7. Verify deletion
     get_del = client.get(f"/api/v1/trips/{trip_id}", headers=headers)
     assert get_del.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_trip_service_calculate_end_date_consistency():
+    """Verify TripService.calculate_end_date and round-trip consistency with calculate_trip_days."""
+    from app.services.trip_service import TripService
+
+    test_cases = [
+        ("2026-10-20", 1, "2026-10-20"),
+        ("2026-10-20", 5, "2026-10-24"),
+        ("2026-10-30", 3, "2026-11-01"),
+        ("2026-12-30", 4, "2027-01-02"),
+    ]
+    for start_date, duration, expected_end in test_cases:
+        calculated_end = TripService.calculate_end_date(start_date, duration)
+        assert calculated_end == expected_end
+        # Verify mathematical inverse round-trip
+        assert TripService.calculate_trip_days(start_date, calculated_end) == duration

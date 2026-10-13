@@ -6,6 +6,7 @@ into an observable, deterministic production workflow.
 
 import time
 import uuid
+from datetime import date, timedelta
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 
@@ -33,6 +34,17 @@ class PlanningPipelineService:
     """
     Orchestrates the full deterministic travel planning pipeline with stage telemetry and diagnostics.
     """
+
+    @staticmethod
+    def calculate_persisted_end_date(start_date_str: str, duration_days: int) -> str:
+        """
+        Calculate inclusive trip end date: start_date + (duration_days - 1) days.
+        Ensures a 1-day trip has identical start_date and end_date, while
+        multi-day trips span the exact inclusive calendar duration.
+        """
+        d_start = date.fromisoformat(start_date_str)
+        d_end = d_start + timedelta(days=max(0, duration_days - 1))
+        return d_end.isoformat()
 
     def __init__(self):
         self.recommender = MCDMRecommender()
@@ -165,13 +177,14 @@ class PlanningPipelineService:
         # 5. Stage 4: Database Persistence (Phase 7)
         s4_start = time.perf_counter()
         trip_title = f"{dest.name} {request.duration_days}-Day Trip"
+        persisted_end_date = self.calculate_persisted_end_date(request.start_date, request.duration_days)
 
         trip = Trip(
             creator_id=user_id,
             destination_id=request.destination_id,
             title=trip_title,
             start_date=request.start_date,
-            end_date=request.start_date,
+            end_date=persisted_end_date,
             number_of_days=request.duration_days,
             party_size=request.party_size,
             total_budget=request.total_budget,

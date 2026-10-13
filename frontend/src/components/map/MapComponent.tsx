@@ -329,8 +329,10 @@ export const MapComponent: React.FC<MapComponentProps> = ({
                         <div className="flex items-center gap-1.5">
                           <DollarSign className="w-3.5 h-3.5 text-slate-400" />
                           <span>
-                            {item.item_admission_fee > 0
+                            {item.item_admission_fee && item.item_admission_fee > 0
                               ? `Entry: ₹${item.item_admission_fee}`
+                              : item.admission_fee_status === 'unknown' || item.item_admission_fee === null
+                              ? 'Fee Unverified'
                               : 'Free Admission'}
                           </span>
                         </div>

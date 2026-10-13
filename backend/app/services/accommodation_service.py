@@ -36,6 +36,104 @@ def get_data_dir() -> Path:
 
 
 class AccommodationService:
+    ROAD_WINDING_FACTOR = 1.30
+
+    @classmethod
+    def calculate_estimated_road_distance(
+        cls, lat1: float, lon1: float, lat2: float, lon2: float
+    ) -> float:
+        """
+        Estimate road distance in kilometers using Haversine formula
+        multiplied by empirical ROAD_WINDING_FACTOR = 1.30.
+        """
+        if lat1 == lat2 and lon1 == lon2:
+            return 0.0
+        R = 6371.0  # Earth radius km
+        phi1, phi2 = math.radians(lat1), math.radians(lat2)
+        dphi = math.radians(lat2 - lat1)
+        dlambda = math.radians(lon2 - lon1)
+        a = (
+            math.sin(dphi / 2.0) ** 2
+            + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2.0) ** 2
+        )
+        c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(max(0.0, 1.0 - a)))
+        return round(R * c * cls.ROAD_WINDING_FACTOR, 3)
+
+    @classmethod
+    def _extract_itinerary_day_waypoints(
+        cls, db: Session, request: AccommodationRecommendationRequest
+    ) -> List[List[Dict[str, Any]]]:
+        """
+        Extract ordered attraction coordinates per day from either:
+        1. request.itinerary_days (passed directly from client or pipeline)
+        2. request.itinerary_id (queried from DB)
+        3. request.trip_id (queried from DB)
+        Returns a list of days, where each day is a list of attraction dicts with 'latitude', 'longitude', 'name'.
+        """
+        day_waypoints: List[List[Dict[str, Any]]] = []
+
+        if request.itinerary_days:
+            for day in request.itinerary_days:
+                items = day.get("items") or []
+                ordered_attrs = day.get("ordered_attractions") or []
+                day_coords = []
+                if items:
+                    for item in sorted(items, key=lambda x: x.get("visit_order", 0)):
+                        attr = item.get("attraction") or {}
+                        lat = attr.get("latitude")
+                        lon = attr.get("longitude")
+                        if lat is not None and lon is not None:
+                            day_coords.append({
+                                "latitude": float(lat),
+                                "longitude": float(lon),
+                                "name": attr.get("name", "Attraction"),
+                            })
+                elif ordered_attrs:
+                    for attr in ordered_attrs:
+                        lat = attr.get("latitude")
+                        lon = attr.get("longitude")
+                        if lat is not None and lon is not None:
+                            day_coords.append({
+                                "latitude": float(lat),
+                                "longitude": float(lon),
+                                "name": attr.get("name", "Attraction"),
+                            })
+                if day_coords:
+                    day_waypoints.append(day_coords)
+
+        if not day_waypoints and (request.itinerary_id or request.trip_id):
+            from app.models.itinerary import Itinerary
+
+            itin = None
+            if request.itinerary_id:
+                itin = db.query(Itinerary).filter(Itinerary.id == request.itinerary_id).first()
+            if not itin and request.trip_id:
+                itin = (
+                    db.query(Itinerary)
+                    .filter(Itinerary.trip_id == request.trip_id)
+                    .order_by(Itinerary.created_at.desc())
+                    .first()
+                )
+
+            if itin and itin.days:
+                for d in sorted(itin.days, key=lambda x: x.day_number):
+                    day_coords = []
+                    for item in sorted(d.items, key=lambda x: x.visit_order):
+                        if (
+                            item.attraction
+                            and item.attraction.latitude is not None
+                            and item.attraction.longitude is not None
+                        ):
+                            day_coords.append({
+                                "latitude": float(item.attraction.latitude),
+                                "longitude": float(item.attraction.longitude),
+                                "name": item.attraction.name,
+                            })
+                    if day_coords:
+                        day_waypoints.append(day_coords)
+
+        return day_waypoints
+
     @staticmethod
     def _load_fallback_accommodations(destination_id: str) -> List[Dict[str, Any]]:
         """Load curated benchmark accommodations from JSON if database table is unpopulated."""
@@ -55,11 +153,28 @@ class AccommodationService:
         return []
 
     @classmethod
+    def normalize_category(cls, category: Optional[str]) -> Optional[str]:
+        """Normalize category filter key."""
+        if not category:
+            return None
+        c = category.strip().lower()
+        if c in ("all", "all stays", "*", "any"):
+            return "all"
+        if c in ("ultra_luxury", "ultra-luxury", "luxury", "ultraluxury"):
+            return "ultra_luxury"
+        if c in ("ultra_budget", "ultra-budget", "budget", "ultrabudget"):
+            return "ultra_budget"
+        if c in ("moderate", "mid_range", "mid-range", "moderate / mid-range", "standard"):
+            return "moderate"
+        return c
+
+    @classmethod
     def get_accommodations_for_destination(
         cls,
         db: Session,
         destination_id: str,
         budget_tier: Optional[str] = None,
+        category: Optional[str] = None,
         min_rating: Optional[float] = None,
         max_price_per_night: Optional[float] = None,
         accommodation_type: Optional[str] = None,
@@ -87,7 +202,7 @@ class AccommodationService:
             raw_data = cls._load_fallback_accommodations(dest_norm)
             results = []
             for item in raw_data:
-                if min_rating is not None and item.get("rating", 0) < min_rating:
+                if min_rating is not None and item.get("rating") is not None and item.get("rating", 0) < min_rating:
                     continue
                 if max_price_per_night is not None and item.get("price_per_night", 0) > max_price_per_night:
                     continue
@@ -95,8 +210,17 @@ class AccommodationService:
                     continue
                 results.append(AccommodationResponse(**item))
 
-        # Filter by budget tier if requested
-        if budget_tier:
+        # Filter by category if requested
+        if category:
+            cat_norm = cls.normalize_category(category)
+            if cat_norm == "ultra_luxury":
+                results = [r for r in results if r.category == "Ultra-Luxury"]
+            elif cat_norm == "ultra_budget":
+                results = [r for r in results if r.category == "Ultra-Budget"]
+            elif cat_norm == "moderate":
+                results = [r for r in results if r.category == "Moderate / Mid-Range"]
+        elif budget_tier:
+            # Filter by legacy budget tier if requested
             tier_upper = budget_tier.upper()
             filtered = []
             for r in results:
@@ -165,18 +289,41 @@ class AccommodationService:
             )
         nights = delta_days
 
-        # 2. Fetch candidates
+        # 2. Category normalization & candidate fetching
+        category_filter = request.category or request.budget_tier
+        norm_cat = cls.normalize_category(category_filter) or "all"
+
         candidates = cls.get_accommodations_for_destination(
             db=db,
             destination_id=dest_norm,
-            budget_tier=request.budget_tier,
+            category=request.category,
+            budget_tier=request.budget_tier if not request.category else None,
             min_rating=request.min_rating,
             max_price_per_night=request.max_price_per_night,
             accommodation_type=request.preferred_type,
         )
 
-        # If strict filtering produced nothing, relax filters to provide options
-        if not candidates:
+        # Dataset depth and status explanation
+        category_data_status = None
+        if norm_cat == "ultra_luxury":
+            if len(candidates) == 1:
+                category_data_status = (
+                    f"Curated dataset currently contains 1 verified Ultra-Luxury benchmark property for {destination_name}. "
+                    f"Additional 5-star resort/palace benchmarks require verified regional tariff data."
+                )
+            elif len(candidates) == 0:
+                category_data_status = f"No verified accommodation records found in the Ultra-Luxury category for {destination_name}."
+        elif norm_cat == "ultra_budget":
+            if len(candidates) == 0:
+                category_data_status = f"No verified accommodation records found in the Ultra-Budget category for {destination_name}."
+            elif len(candidates) <= 2:
+                category_data_status = f"Curated dataset contains {len(candidates)} verified Ultra-Budget property/properties for {destination_name}."
+        elif norm_cat == "moderate":
+            if len(candidates) == 0:
+                category_data_status = f"No verified accommodation records found in the Moderate / Mid-Range category for {destination_name}."
+
+        # If strict filtering produced nothing and user did not specify a category or tier, relax filters
+        if not candidates and norm_cat == "all" and not request.budget_tier:
             candidates = cls.get_accommodations_for_destination(
                 db=db,
                 destination_id=dest_norm,
@@ -221,6 +368,49 @@ class AccommodationService:
 
         recommendation_items: List[AccommodationRecommendationItem] = []
 
+        # Multi-day itinerary spatial suitability precomputation
+        day_waypoints = cls._extract_itinerary_day_waypoints(db, request)
+        is_itinerary_aware = len(day_waypoints) > 0
+
+        # Calculate intra-day attraction distance across all days (fixed baseline)
+        total_intra_attraction_km = 0.0
+        if is_itinerary_aware:
+            for day_coords in day_waypoints:
+                for k in range(len(day_coords) - 1):
+                    total_intra_attraction_km += cls.calculate_estimated_road_distance(
+                        day_coords[k]["latitude"],
+                        day_coords[k]["longitude"],
+                        day_coords[k + 1]["latitude"],
+                        day_coords[k + 1]["longitude"],
+                    )
+
+        # Precompute hotel transit for all candidates to compute relative ranking
+        acc_transit_map: Dict[str, float] = {}
+        if is_itinerary_aware:
+            for acc in candidates:
+                if acc.latitude is not None and acc.longitude is not None:
+                    hotel_transit = 0.0
+                    for day_coords in day_waypoints:
+                        first_attr = day_coords[0]
+                        last_attr = day_coords[-1]
+                        d_origin = cls.calculate_estimated_road_distance(
+                            acc.latitude, acc.longitude, first_attr["latitude"], first_attr["longitude"]
+                        )
+                        d_return = cls.calculate_estimated_road_distance(
+                            last_attr["latitude"], last_attr["longitude"], acc.latitude, acc.longitude
+                        )
+                        hotel_transit += (d_origin + d_return)
+                    acc_transit_map[acc.id] = round(hotel_transit, 2)
+                else:
+                    acc_transit_map[acc.id] = 999.0
+
+            valid_transits = [v for v in acc_transit_map.values() if v < 900.0]
+            min_hotel_transit = min(valid_transits) if valid_transits else 0.0
+            max_hotel_transit = max(valid_transits) if valid_transits else 0.0
+        else:
+            min_hotel_transit = 0.0
+            max_hotel_transit = 0.0
+
         # 4. Multi-criteria evaluation for each candidate
         for acc in candidates:
             # Capacity & Rooms needed based strictly on property room capacity
@@ -245,8 +435,12 @@ class AccommodationService:
                 is_within_budget = True
                 budget_fit_score = 0.85
 
-            # Rating score
-            rating_score = round(min(max(acc.rating / 5.0, 0.0), 1.0), 3)
+            # Rating score (Honest: neutral 0.70 if unrated, never assume 5.0 or 0.0)
+            has_valid_rating = acc.rating is not None and acc.rating > 0.0
+            if has_valid_rating:
+                rating_score = round(min(max(acc.rating / 5.0, 0.0), 1.0), 3)
+            else:
+                rating_score = 0.70
 
             # Amenities score
             if request.required_amenities:
@@ -267,15 +461,125 @@ class AccommodationService:
             # Provenance score (verified property gets higher trust)
             provenance_score = 1.0 if acc.is_verified else 0.65
 
-            # Composite match score: weights (0.35 budget, 0.25 rating, 0.20 amenities, 0.10 type, 0.10 provenance)
-            match_score = round(
-                0.35 * budget_fit_score
-                + 0.25 * rating_score
-                + 0.20 * amenities_score
-                + 0.10 * type_score
-                + 0.10 * provenance_score,
-                3,
-            )
+            # Location Suitability Scoring (Itinerary-Aware across all days)
+            if (
+                is_itinerary_aware
+                and acc.id in acc_transit_map
+                and acc.latitude is not None
+                and acc.longitude is not None
+            ):
+                total_transit_km = acc_transit_map[acc.id]
+                avg_daily_transit_km = round(total_transit_km / max(1, len(day_waypoints)), 1)
+                total_trip_km = round(total_intra_attraction_km + total_transit_km, 1)
+                savings_km = round(max(0.0, max_hotel_transit - total_transit_km), 1)
+
+                transit_range = max_hotel_transit - min_hotel_transit
+                rel_score = (
+                    1.0 - ((total_transit_km - min_hotel_transit) / transit_range)
+                    if transit_range > 0.0
+                    else 1.0
+                )
+                abs_score = 1.0 / (1.0 + (avg_daily_transit_km / 25.0))
+                location_score = round(
+                    min(1.0, max(0.05, 0.60 * rel_score + 0.40 * abs_score)), 3
+                )
+
+                if avg_daily_transit_km <= 15.0:
+                    loc_explanation = (
+                        f"Centrally located for this itinerary: estimated ~{avg_daily_transit_km} km/day round-trip transit "
+                        f"to daily waypoints (saves ~{savings_km} km total vs outlying options)."
+                    )
+                elif avg_daily_transit_km <= 35.0:
+                    loc_explanation = (
+                        f"Moderate transit distance: requires estimated ~{avg_daily_transit_km} km/day round-trip transit "
+                        f"to planned itinerary waypoints."
+                    )
+                else:
+                    loc_explanation = (
+                        f"Peripheral location / dispersed attractions: requires estimated ~{avg_daily_transit_km} km/day "
+                        f"round-trip transit across planned itinerary days."
+                    )
+            elif is_itinerary_aware:
+                total_transit_km = None
+                avg_daily_transit_km = None
+                total_trip_km = None
+                savings_km = None
+                location_score = 0.5
+                loc_explanation = "Location coordinates unavailable for spatial routing analysis."
+            else:
+                total_transit_km = None
+                avg_daily_transit_km = None
+                total_trip_km = None
+                savings_km = None
+                location_score = None
+                loc_explanation = None
+
+            # Category-specific composite match score
+            acc_cat = acc.category
+            if acc_cat == "Ultra-Luxury":
+                if is_itinerary_aware and location_score is not None:
+                    # Ultra-Luxury weights: Quality/Rating (0.25), Amenities (0.25), Location (0.25), Budget/Stay Cost (0.15), Provenance (0.10)
+                    match_score = round(
+                        0.25 * rating_score
+                        + 0.25 * amenities_score
+                        + 0.25 * location_score
+                        + 0.15 * budget_fit_score
+                        + 0.10 * provenance_score,
+                        3,
+                    )
+                else:
+                    match_score = round(
+                        0.35 * rating_score
+                        + 0.30 * amenities_score
+                        + 0.15 * budget_fit_score
+                        + 0.10 * provenance_score
+                        + 0.10 * type_score,
+                        3,
+                    )
+            elif acc_cat == "Ultra-Budget":
+                # Affordability benchmark: lower price_per_night receives higher affordability score
+                affordability_score = round(min(1.0, max(0.2, 1.0 - (acc.price_per_night - 1000.0) / 3000.0)), 3)
+                combined_budget_score = round(0.60 * budget_fit_score + 0.40 * affordability_score, 3)
+                if is_itinerary_aware and location_score is not None:
+                    # Ultra-Budget weights: Affordability (0.40), Location/Transit (0.25), Rating/Quality (0.20), Amenities (0.10), Provenance (0.05)
+                    match_score = round(
+                        0.40 * combined_budget_score
+                        + 0.25 * location_score
+                        + 0.20 * rating_score
+                        + 0.10 * amenities_score
+                        + 0.05 * provenance_score,
+                        3,
+                    )
+                else:
+                    match_score = round(
+                        0.45 * combined_budget_score
+                        + 0.25 * rating_score
+                        + 0.15 * amenities_score
+                        + 0.10 * provenance_score
+                        + 0.05 * type_score,
+                        3,
+                    )
+            else:
+                # Moderate / Mid-Range (balanced)
+                if is_itinerary_aware and location_score is not None:
+                    match_score = round(
+                        0.30 * budget_fit_score
+                        + 0.25 * location_score
+                        + 0.20 * rating_score
+                        + 0.15 * amenities_score
+                        + 0.05 * type_score
+                        + 0.05 * provenance_score,
+                        3,
+                    )
+                else:
+                    match_score = round(
+                        0.35 * budget_fit_score
+                        + 0.25 * rating_score
+                        + 0.20 * amenities_score
+                        + 0.10 * type_score
+                        + 0.10 * provenance_score,
+                        3,
+                    )
 
             # Multi-category budget calculations
             remaining_after_acc = (
@@ -292,15 +596,12 @@ class AccommodationService:
 
             # Explainable match reasons
             reasons = []
-            if rooms_needed == 1:
-                reasons.append(
-                    f"1 room for {party_size} guest{'s' if party_size > 1 else ''} across {nights} night{'s' if nights > 1 else ''} "
-                    f"(₹{acc.price_per_night:,.0f}/night benchmark)"
-                )
-            else:
-                reasons.append(
-                    f"{rooms_needed} rooms required for {party_size} guests ({capacity} guests/room) across {nights} night{'s' if nights > 1 else ''}"
-                )
+            reasons.append(
+                f"Category: {acc.category} ({acc.accommodation_type.title()}) — {rooms_needed} room{'s' if rooms_needed > 1 else ''} for {party_size} traveler{'s' if party_size > 1 else ''} across {nights} night{'s' if nights > 1 else ''}"
+            )
+            reasons.append(
+                f"Estimated tariff: ₹{acc.price_per_night:,.0f}/night benchmark (estimated total stay: ₹{total_cost:,.0f})"
+            )
 
             if is_within_budget and allocated_budget:
                 reasons.append(
@@ -326,13 +627,32 @@ class AccommodationService:
                         f"Over total trip budget by ₹{abs(remaining_budget):,.0f}"
                     )
 
-            reasons.append(f"{acc.rating:.1f}★ rated with {len(acc.amenities)} curated amenities")
+            if has_valid_rating:
+                if acc.review_count:
+                    reasons.append(f"{acc.rating:.1f}★ rating based on {acc.review_count} documented guest reviews")
+                else:
+                    reasons.append(f"{acc.rating:.1f}★ documented guest rating")
+            else:
+                reasons.append("Guest ratings unavailable (scored on verified tariff and documented amenities)")
+
+            reasons.append(f"{len(acc.amenities)} documented amenities: {', '.join(acc.amenities[:4])}{'...' if len(acc.amenities) > 4 else ''}")
 
             if acc.is_verified:
                 source_name = acc.provenance.get("source", "Official Tourism Registry")
                 reasons.append(f"Verified physical property ({source_name})")
             else:
                 reasons.append("Estimated regional benchmark property")
+
+            if loc_explanation:
+                reasons.append(loc_explanation)
+
+            # Category-specific rationale
+            if acc.category == "Ultra-Luxury":
+                reasons.append(f"Recommended for premium luxury hospitality, resort/heritage setting, and curated amenities ({', '.join(acc.amenities[:3])})")
+            elif acc.category == "Ultra-Budget":
+                reasons.append(f"Recommended for outstanding affordability (₹{acc.price_per_night:,.0f}/night) and transit efficiency")
+            else:
+                reasons.append("Recommended for balanced comfort, verified pricing, and convenient proximity to planned activities")
 
             badge = acc.provenance.get("provenance_badge", "VERIFIED" if acc.is_verified else "ESTIMATED")
 
@@ -345,6 +665,7 @@ class AccommodationService:
             recommendation_items.append(
                 AccommodationRecommendationItem(
                     accommodation=acc,
+                    category=acc.category,
                     nights=nights,
                     rooms_needed=rooms_needed,
                     price_per_night=acc.price_per_night,
@@ -363,6 +684,14 @@ class AccommodationService:
                     excluded_cost_categories=excluded_categories,
                     is_estimate_complete=False,
                     booking_note=booking_note,
+                    location_suitability_score=location_score,
+                    estimated_total_hotel_transit_km=total_transit_km,
+                    estimated_daily_hotel_transit_km=avg_daily_transit_km,
+                    estimated_trip_travel_distance_km=total_trip_km,
+                    location_explanation=loc_explanation,
+                    distance_reduction_vs_max_km=savings_km,
+                    provenance_distance_method="haversine_with_road_winding_factor",
+                    road_winding_factor=cls.ROAD_WINDING_FACTOR,
                 )
             )
 
@@ -373,7 +702,13 @@ class AccommodationService:
         top_name = recommendation_items[0].accommodation.name if recommendation_items else "lodging options"
         top_cost = recommendation_items[0].total_cost if recommendation_items else 0.0
 
-        if allocated_budget:
+        if is_itinerary_aware:
+            summary = (
+                f"Found {len(recommendation_items)} authentic accommodation option(s) in {destination_name} for "
+                f"{nights} night(s) and {party_size} traveler(s), ranked by itinerary location centrality across "
+                f"{len(day_waypoints)} planned day(s). Top recommended: {top_name} at ₹{top_cost:,.0f} total."
+            )
+        elif allocated_budget:
             summary = (
                 f"Found {len(recommendation_items)} authentic accommodation option(s) in {destination_name} for "
                 f"{nights} night(s) and {party_size} traveler(s). Target lodging budget: ₹{allocated_budget:,.0f} "
@@ -394,10 +729,17 @@ class AccommodationService:
         )
         standard_rooms_est = max(1, math.ceil(party_size / 2))
 
+        selected_cat_display = {
+            "ultra_luxury": "Ultra-Luxury",
+            "ultra_budget": "Ultra-Budget",
+            "moderate": "Moderate / Mid-Range",
+        }.get(norm_cat, "All Stays")
+
         budget_ctx = AccommodationBudgetContext(
             total_budget=request.total_budget,
             allocated_accommodation_budget=allocated_budget,
             budget_tier=budget_tier,
+            selected_category=selected_cat_display,
             nights=nights,
             party_size=party_size,
             rooms_needed=top_rooms,
@@ -420,4 +762,8 @@ class AccommodationService:
             budget_context=budget_ctx,
             recommendations=recommendation_items,
             summary=summary,
+            is_itinerary_aware=is_itinerary_aware,
+            total_itinerary_days_evaluated=len(day_waypoints) if is_itinerary_aware else None,
+            category_filter=norm_cat,
+            category_data_status=category_data_status,
         )

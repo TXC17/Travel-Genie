@@ -4,34 +4,94 @@
     "base_fare": 0,
     "per_km_rate": 0,
     "max_practical_km": 2.0,
-    "pedestrian_only": true
+    "pedestrian_only": true,
+    "provenance": {
+      "method": "zero_cost_pedestrian",
+      "rate_type": "physical_baseline",
+      "source": "Standard human walking speed benchmark (no monetary transit cost)",
+      "verification_status": "VERIFIED_BENCHMARK",
+      "units": {
+        "speed": "km/h",
+        "base_fare": "INR",
+        "per_km_rate": "INR/km"
+      },
+      "notes": "Zero fare; practical walking limit capped at 2.0 km per leg for sightseeing comfort."
+    }
   },
   "auto": {
     "speed_kmh": 25.0,
     "base_fare": 30.0,
     "per_km_rate": 15.0,
     "max_passengers": 3,
-    "suitability": "Short to medium urban and local trips"
+    "suitability": "Short to medium urban and local trips",
+    "provenance": {
+      "method": "empirical_regional_auto_rickshaw_meter_benchmark",
+      "rate_type": "empirical_estimate",
+      "source": "Curated empirical benchmark reflecting regional Karnataka auto-rickshaw meter norms (base ₹30, ₹15/km); non-meter tourist routes may negotiate higher fixed fares",
+      "verification_status": "EMPIRICAL_ESTIMATE",
+      "units": {
+        "speed": "km/h",
+        "base_fare": "INR (initial flag-down / minimum fare)",
+        "per_km_rate": "INR/km"
+      },
+      "notes": "Represents standard metered regional guideline; not an official RTA gazette tariff citation."
+    }
   },
   "taxi": {
     "speed_kmh": 35.0,
     "base_fare": 150.0,
     "per_km_rate": 20.0,
     "max_passengers": 6,
-    "suitability": "Group travel, inter-cluster transfers, long sightseeing routes"
+    "suitability": "Group travel, inter-cluster transfers, long sightseeing routes",
+    "provenance": {
+      "method": "empirical_local_cab_rate_benchmark",
+      "rate_type": "empirical_estimate",
+      "source": "Curated local sightseeing / app-cab / local taxi union rate benchmark (base ₹150, ₹20/km)",
+      "verification_status": "EMPIRICAL_ESTIMATE",
+      "units": {
+        "speed": "km/h",
+        "base_fare": "INR (dispatch / initial minimum fare)",
+        "per_km_rate": "INR/km"
+      },
+      "notes": "Estimates private local point-to-point or on-demand cab transit; unmetered tourist taxi stands may quote flat day packages."
+    }
   },
   "rental": {
     "speed_kmh": 35.0,
     "daily_base_cost": 1200.0,
     "per_km_fuel": 6.0,
     "max_passengers": 5,
-    "suitability": "Full-day dedicated sightseeing flexibility"
+    "suitability": "Full-day dedicated sightseeing flexibility",
+    "provenance": {
+      "method": "self_drive_car_rental_daily_benchmark",
+      "rate_type": "empirical_estimate",
+      "source": "Curated empirical market estimate for standard compact car self-drive rental in Karnataka/Goa (₹1,200/day + ₹6/km fuel)",
+      "verification_status": "EMPIRICAL_ESTIMATE",
+      "units": {
+        "speed": "km/h",
+        "daily_base_cost": "INR/day (vehicle rental base)",
+        "per_km_fuel": "INR/km (estimated fuel / operating consumption)"
+      },
+      "notes": "Excludes refundable security deposits, state border permits, and peak holiday surcharges."
+    }
   },
   "public": {
     "speed_kmh": 20.0,
     "base_fare": 15.0,
     "per_km_rate": 4.0,
     "max_passengers": 50,
-    "suitability": "Budget-conscious solo or duo travelers along major transit corridors"
+    "suitability": "Budget-conscious solo or duo travelers along major transit corridors",
+    "provenance": {
+      "method": "regional_bus_transit_fare_estimate",
+      "rate_type": "locally_configured_assumption",
+      "source": "Locally configured nominal public bus fare benchmark (base ₹15, ₹4/km); actual KSRTC/Kadamba stage tariffs depend on specific bus service class",
+      "verification_status": "UNVERIFIED_ASSUMPTION",
+      "units": {
+        "speed": "km/h",
+        "base_fare": "INR (stage 1 entry fare)",
+        "per_km_rate": "INR/km (average stage rate)"
+      },
+      "notes": "Assumed average transit corridor fare for budget modeling; route-specific stage fare tables are not indexed."
+    }
   }
 }

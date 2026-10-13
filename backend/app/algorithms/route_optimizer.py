@@ -321,6 +321,7 @@ class IntraDayRouteOptimizer:
         transport_mode: str,
         start_time_hours: float,
         max_daily_hours: float,
+        party_size: int = 1,
         accommodation: Optional[RouteEndpointSchema] = None,
         return_to_accommodation: bool = True,
     ) -> Tuple[
@@ -394,7 +395,24 @@ class IntraDayRouteOptimizer:
         for order_idx, node_idx in enumerate(sequence, start=1):
             attr = attractions[node_idx]
             visit_dur = max(0.5, float(attr.average_visit_duration or 1.5))
-            adm_fee = float(attr.entry_fee or 0.0)
+            if attr.entry_fee is None:
+                adm_fee = 0.0
+                fee_status = "unknown"
+                is_fee_ver = False
+                item_fee = None
+                group_fee = None
+            elif attr.entry_fee == 0.0:
+                adm_fee = 0.0
+                fee_status = "free"
+                is_fee_ver = bool(getattr(attr, "is_verified", False) or False)
+                item_fee = 0.0
+                group_fee = 0.0
+            else:
+                adm_fee = float(attr.entry_fee)
+                fee_status = "paid"
+                is_fee_ver = bool(getattr(attr, "is_verified", False) or False)
+                item_fee = round(adm_fee, 2)
+                group_fee = round(adm_fee * party_size, 2)
 
             # Operating hours check
             open_hours = self.parse_time_to_hours(attr.opening_time, 6.0)
@@ -466,7 +484,7 @@ class IntraDayRouteOptimizer:
             curr_time += visit_dur
             departure_hours = curr_time
             total_sightseeing += visit_dur
-            total_adm_cost += adm_fee
+            total_adm_cost += (adm_fee * party_size)
 
             # Check if visit extends past closing time
             if departure_hours > (close_hours + 0.1):  # 6-min grace threshold
@@ -485,7 +503,10 @@ class IntraDayRouteOptimizer:
                     visit_duration_hours=round(visit_dur, 2),
                     travel_time_from_prev_hours=round(travel_time_from_prev, 3),
                     distance_from_prev_km=round(dist_from_prev, 3),
-                    item_admission_fee=round(adm_fee, 2),
+                    item_admission_fee=item_fee,
+                    item_group_admission_fee=group_fee,
+                    admission_fee_status=fee_status,
+                    is_fee_verified=is_fee_ver,
                     waiting_time_hours=round(waiting_time, 3),
                     crowd_estimate_score=round(float(attr.popularity_score or 0.5), 2),
                     crowd_level="High" if (attr.popularity_score or 0.5) > 0.8 else "Moderate",
@@ -646,6 +667,7 @@ class IntraDayRouteOptimizer:
                 request.preferred_transport,
                 start_time_hours,
                 max_daily_hours,
+                party_size=request.party_size,
                 accommodation=request.accommodation,
                 return_to_accommodation=request.return_to_accommodation,
             )
@@ -823,6 +845,7 @@ class IntraDayRouteOptimizer:
                 preferred_transport=request.preferred_transport,
                 pace=request.pace,
                 day_start_time=request.day_start_time,
+                party_size=request.party_size,
                 accommodation=request.accommodation,
                 return_to_accommodation=request.return_to_accommodation,
                 mcdm_scores_map=request.mcdm_scores_map,

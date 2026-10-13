@@ -17,15 +17,17 @@ import {
   Filter,
   CheckCircle2,
   X,
+  MapPin,
 } from 'lucide-react';
 
 interface AccommodationPickerProps {
   destinationId: string;
-  partySize: number;
-  totalBudget: number;
-  startDate: string;
-  durationDays: number;
+  partySize?: number;
+  totalBudget?: number;
+  startDate?: string;
+  durationDays?: number;
   intercityTransportCost?: number;
+  itinerary?: any;
   selectedAccommodation?: AccommodationRecommendationItem | null;
   onSelectAccommodation: (item: AccommodationRecommendationItem | null) => void;
 }
@@ -37,13 +39,14 @@ export const AccommodationPicker: React.FC<AccommodationPickerProps> = ({
   startDate,
   durationDays,
   intercityTransportCost,
+  itinerary,
   selectedAccommodation,
   onSelectAccommodation,
 }) => {
   const [data, setData] = useState<AccommodationRecommendationResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTier, setSelectedTier] = useState<string>('All');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('All');
 
   // Compute check-out date
@@ -60,8 +63,11 @@ export const AccommodationPicker: React.FC<AccommodationPickerProps> = ({
     }
   };
 
-  const checkInDate = startDate || new Date().toISOString().split('T')[0];
-  const checkOutDate = computeCheckOutDate(checkInDate, durationDays);
+  const checkInDate = startDate;
+  const checkOutDate = (startDate && durationDays) ? computeCheckOutDate(startDate, durationDays) : undefined;
+  const hasRequiredConstraints = Boolean(
+    destinationId && checkInDate && checkOutDate && partySize && partySize > 0
+  );
 
   // Auto-reset selected accommodation if destination has changed
   useEffect(() => {
@@ -72,38 +78,56 @@ export const AccommodationPicker: React.FC<AccommodationPickerProps> = ({
 
   useEffect(() => {
     let isCancelled = false;
-    if (destinationId && checkInDate && checkOutDate) {
-      setLoading(true);
-      setError(null);
-      accommodationService.getRecommendations({
-        destination_id: destinationId,
-        check_in_date: checkInDate,
-        check_out_date: checkOutDate,
-        party_size: partySize,
-        total_budget: totalBudget,
-        intercity_transport_cost: intercityTransportCost,
-        budget_tier: selectedTier !== 'All' ? selectedTier : undefined,
-        preferred_type: selectedType !== 'All' ? selectedType.toLowerCase() : undefined,
-      }).then((res) => {
-        if (!isCancelled) {
-          setData(res);
-          setLoading(false);
-        }
-      }).catch((err: any) => {
-        if (!isCancelled) {
-          console.error('Failed to load accommodation recommendations', err);
-          const msg = err.response?.data?.detail || 'Unable to fetch accommodation recommendations.';
-          setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
-          setData(null);
-          setLoading(false);
-        }
-      });
+
+    if (!hasRequiredConstraints) {
+      setData(null);
+      setLoading(false);
+      return;
     }
+
+    setLoading(true);
+    setError(null);
+    accommodationService.getRecommendations({
+      destination_id: destinationId,
+      check_in_date: checkInDate!,
+      check_out_date: checkOutDate!,
+      party_size: partySize!,
+      total_budget: totalBudget,
+      intercity_transport_cost: intercityTransportCost,
+      category: selectedCategory !== 'all' ? selectedCategory : undefined,
+      preferred_type: selectedType !== 'All' ? selectedType.toLowerCase() : undefined,
+      trip_id: itinerary?.trip_id,
+      itinerary_days: itinerary?.days,
+    }).then((res) => {
+      if (!isCancelled) {
+        setData(res);
+        setLoading(false);
+      }
+    }).catch((err: any) => {
+      if (!isCancelled) {
+        console.error('Failed to load accommodation recommendations', err);
+        const msg = err.response?.data?.detail || 'Unable to fetch accommodation recommendations.';
+        setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+        setData(null);
+        setLoading(false);
+      }
+    });
 
     return () => {
       isCancelled = true;
     };
-  }, [destinationId, partySize, totalBudget, checkInDate, checkOutDate, selectedTier, selectedType, intercityTransportCost]);
+  }, [
+    destinationId,
+    partySize,
+    totalBudget,
+    checkInDate,
+    checkOutDate,
+    selectedCategory,
+    selectedType,
+    intercityTransportCost,
+    hasRequiredConstraints,
+    itinerary,
+  ]);
 
   const handleSelect = (item: AccommodationRecommendationItem) => {
     if (selectedAccommodation?.accommodation.id === item.accommodation.id) {
@@ -119,15 +143,25 @@ export const AccommodationPicker: React.FC<AccommodationPickerProps> = ({
       {/* Component Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-neutral-800 pb-4">
         <div>
-          <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
-            <Hotel className="w-4 h-4" />
-            <span>Phase 2 Budget-Based Accommodations</span>
+          <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1 flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <Hotel className="w-4 h-4" />
+              <span>Phase 2 Budget-Based Accommodations</span>
+            </div>
+            {data?.is_itinerary_aware && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 dark:bg-blue-950/70 text-blue-900 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                <MapPin className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                <span>Itinerary-Aware Proximity ({data.total_itinerary_days_evaluated} Days Evaluated)</span>
+              </span>
+            )}
           </div>
           <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
             <span>Curated Lodging & Room Capacity Optimizer</span>
           </h2>
           <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-            Transparent room capacity, stay duration, and budget impact analysis with verified regional benchmarks.
+            {data?.is_itinerary_aware
+              ? 'Ranked by multi-day itinerary location centrality to reduce estimated daily transit across all planned activities.'
+              : 'Transparent room capacity, stay duration, and budget impact analysis with verified regional benchmarks.'}
           </p>
         </div>
 
@@ -155,53 +189,88 @@ export const AccommodationPicker: React.FC<AccommodationPickerProps> = ({
         )}
       </div>
 
-      {/* Filter Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-        {/* Tier Filter */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider mr-1">
-            Tier:
-          </span>
-          {['All', 'Budget', 'Standard', 'Luxury'].map((tier) => (
-            <button
-              key={`tier-${tier}`}
-              type="button"
-              onClick={() => setSelectedTier(tier)}
-              className={`liquid-btn px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
-                selectedTier === tier
-                  ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-extrabold shadow-sm'
-                  : 'bg-slate-100 dark:bg-neutral-850 hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-300 border border-slate-200 dark:border-neutral-800'
-              }`}
-            >
-              {tier}
-            </button>
-          ))}
+      {/* Missing Required Constraints Notice */}
+      {!hasRequiredConstraints && (
+        <div className="py-10 px-4 text-center space-y-3 bg-slate-50/50 dark:bg-neutral-900/40 rounded-2xl border border-slate-200/80 dark:border-neutral-800">
+          <div className="inline-flex p-3 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-2xl border border-amber-200 dark:border-amber-900/60">
+            <AlertCircle className="w-6 h-6" />
+          </div>
+          <h3 className="text-sm font-bold text-slate-800 dark:text-neutral-200">
+            Trip Constraints Required for Lodging
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-neutral-400 max-w-md mx-auto">
+            Accurate accommodation recommendations and room capacity planning require confirmed trip dates and party size.
+          </p>
         </div>
+      )}
 
-        {/* Type Filter */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider mr-1">
-            Type:
-          </span>
-          {['All', 'Resort', 'Hotel', 'Homestay', 'Hostel', 'Guesthouse'].map((t) => (
-            <button
-              key={`type-${t}`}
-              type="button"
-              onClick={() => setSelectedType(t)}
-              className={`liquid-btn px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
-                selectedType === t
-                  ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-extrabold shadow-sm'
-                  : 'bg-slate-100 dark:bg-neutral-850 hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-300 border border-slate-200 dark:border-neutral-800'
-              }`}
-            >
-              {t}
-            </button>
-          ))}
+      {/* Filter Toolbar */}
+      {hasRequiredConstraints && (
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+            {/* Category Filter */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider mr-1">
+                Category:
+              </span>
+              {[
+                { id: 'all', label: 'All Stays' },
+                { id: 'ultra_luxury', label: 'Ultra-Luxury' },
+                { id: 'ultra_budget', label: 'Ultra-Budget' },
+                { id: 'moderate', label: 'Moderate / Mid-Range' },
+              ].map((cat) => (
+                <button
+                  key={`cat-${cat.id}`}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`liquid-btn px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                    selectedCategory === cat.id
+                      ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-extrabold shadow-sm'
+                      : 'bg-slate-100 dark:bg-neutral-850 hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-300 border border-slate-200 dark:border-neutral-800'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Type Filter */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider mr-1">
+                Type:
+              </span>
+              {['All', 'Resort', 'Hotel', 'Homestay', 'Hostel', 'Guesthouse'].map((t) => (
+                <button
+                  key={`type-${t}`}
+                  type="button"
+                  onClick={() => setSelectedType(t)}
+                  className={`liquid-btn px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                    selectedType === t
+                      ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-extrabold shadow-sm'
+                      : 'bg-slate-100 dark:bg-neutral-850 hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-700 dark:text-neutral-300 border border-slate-200 dark:border-neutral-800'
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Dataset Depth / Regional Availability Disclosure */}
+          {data?.category_data_status && (
+            <div className="p-3 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-900/50 rounded-2xl flex items-start gap-2 text-xs text-blue-900 dark:text-blue-300">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+              <div>
+                <span className="font-bold">Data Provenance & Category Scope: </span>
+                <span>{data.category_data_status}</span>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Budget Breakdown Indicator */}
-      {data?.budget_context && (
+      {hasRequiredConstraints && data?.budget_context && (
         <div className="p-3.5 bg-slate-50 dark:bg-neutral-900/60 rounded-2xl border border-slate-200 dark:border-neutral-800 space-y-2.5 text-xs">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
@@ -209,7 +278,7 @@ export const AccommodationPicker: React.FC<AccommodationPickerProps> = ({
                 Total Budget
               </span>
               <div className="text-sm font-black text-slate-900 dark:text-white font-mono mt-0.5">
-                ₹{totalBudget.toLocaleString()}
+                {totalBudget !== undefined ? `₹${totalBudget.toLocaleString()}` : 'Not Specified'}
               </div>
             </div>
             <div>
@@ -217,7 +286,9 @@ export const AccommodationPicker: React.FC<AccommodationPickerProps> = ({
                 Target Lodging ({data.budget_context.budget_tier})
               </span>
               <div className="text-sm font-black text-emerald-700 dark:text-emerald-400 font-mono mt-0.5">
-                ₹{(data.budget_context.allocated_accommodation_budget || 0).toLocaleString()}
+                {data.budget_context.allocated_accommodation_budget !== null && data.budget_context.allocated_accommodation_budget !== undefined
+                  ? `₹${data.budget_context.allocated_accommodation_budget.toLocaleString()}`
+                  : 'Flexible'}
               </div>
             </div>
             <div>
@@ -225,7 +296,7 @@ export const AccommodationPicker: React.FC<AccommodationPickerProps> = ({
                 Required Rooms
               </span>
               <div className="text-sm font-black text-slate-800 dark:text-neutral-200 mt-0.5">
-                {data.budget_context.rooms_needed} Room(s) ({partySize} guest{partySize > 1 ? 's' : ''})
+                {data.budget_context.rooms_needed} Room(s) ({partySize} guest{partySize && partySize > 1 ? 's' : ''})
               </div>
             </div>
             <div>
@@ -270,7 +341,7 @@ export const AccommodationPicker: React.FC<AccommodationPickerProps> = ({
       )}
 
       {/* Recommendations Cards Grid */}
-      {!loading && data && data.recommendations.length > 0 && (
+      {hasRequiredConstraints && !loading && data && data.recommendations.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {data.recommendations.map((item) => (
             <AccommodationCard
@@ -285,13 +356,30 @@ export const AccommodationPicker: React.FC<AccommodationPickerProps> = ({
       )}
 
       {/* Empty State */}
-      {!loading && data && data.recommendations.length === 0 && (
+      {hasRequiredConstraints && !loading && data && data.recommendations.length === 0 && (
         <div className="py-8 text-center text-xs text-slate-500 dark:text-neutral-400 space-y-2">
-          <p>No accommodations matched your current filter criteria.</p>
+          <p>
+            No accommodations found matching the{' '}
+            <strong className="text-slate-700 dark:text-neutral-200">
+              {selectedCategory === 'ultra_luxury'
+                ? 'Ultra-Luxury'
+                : selectedCategory === 'ultra_budget'
+                ? 'Ultra-Budget'
+                : selectedCategory === 'moderate'
+                ? 'Moderate / Mid-Range'
+                : 'selected'}
+            </strong>{' '}
+            category.
+          </p>
+          {data.category_data_status && (
+            <p className="text-blue-700 dark:text-blue-300 max-w-md mx-auto font-medium">
+              {data.category_data_status}
+            </p>
+          )}
           <button
             type="button"
             onClick={() => {
-              setSelectedTier('All');
+              setSelectedCategory('all');
               setSelectedType('All');
             }}
             className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline cursor-pointer"

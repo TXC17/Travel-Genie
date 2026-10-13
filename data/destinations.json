@@ -8,18 +8,30 @@
     "longitude": 74.6173,
     "best_season": "October to March",
     "is_active": true,
-    "hero_image_url": "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957"
+    "hero_image_url": "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957",
+    "provenance": {
+      "coordinates_source": "Empirical municipal town center centroid",
+      "coordinate_type": "town_centroid",
+      "verification_status": "UNVERIFIED",
+      "notes": "Approximates Dandeli town center / bus stand area; original geodetic survey reference is unverified in repository records."
+    }
   },
   {
     "id": "coorg",
     "name": "Coorg",
     "state": "Karnataka",
     "description": "Also known as Kodagu, Coorg is a picturesque hill station famous for lush coffee plantations, misty valleys, stunning waterfalls, and rich Kodava culture.",
-    "latitude": 12.3375,
-    "longitude": 75.8069,
+    "latitude": 12.4244,
+    "longitude": 75.7382,
     "best_season": "October to April",
     "is_active": true,
-    "hero_image_url": "https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5"
+    "hero_image_url": "https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5",
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Geographic Benchmark / Madikeri Town Center (Kodagu District Headquarters)",
+      "coordinate_type": "district_headquarters_tourism_hub",
+      "verification_status": "SUBSTANTIATED_BENCHMARK",
+      "notes": "Represents Madikeri town center, the administrative and primary tourism hub of Kodagu district, aligning with intercity route definitions ('Coorg (Madikeri)') and substantiated by nearby Madikeri Fort (12.4215, 75.7390) and Raja's Seat (12.4180, 75.7360) landmarks."
+    }
   },
   {
     "id": "hampi",
@@ -30,17 +42,29 @@
     "longitude": 76.4600,
     "best_season": "November to February",
     "is_active": true,
-    "hero_image_url": "https://images.unsplash.com/photo-1600100397608-f4f5a34e0050"
+    "hero_image_url": "https://images.unsplash.com/photo-1600100397608-f4f5a34e0050",
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Geographic Node / Hampi Bazaar village centroid (adjacent to Virupaksha Temple Node 248910480)",
+      "coordinate_type": "heritage_site_village_centroid",
+      "verification_status": "SUBSTANTIATED_BENCHMARK",
+      "notes": "Center of Hampi Bazaar village core zone, substantiated by nearby ASI Hampi Circle and OSM attraction nodes in repository data."
+    }
   },
   {
     "id": "goa",
     "name": "Goa",
     "state": "Goa",
     "description": "India's premier coastal haven featuring golden sun-kissed beaches, 16th-century Portuguese colonial architecture, UNESCO heritage churches, and vibrant local cuisine.",
-    "latitude": 15.2993,
-    "longitude": 74.1240,
+    "latitude": 15.4989,
+    "longitude": 73.8278,
     "best_season": "November to March",
     "is_active": true,
-    "hero_image_url": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2"
+    "hero_image_url": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2",
+    "provenance": {
+      "coordinates_source": "OpenStreetMap Geographic Benchmark / Panaji Municipal & Church Square (State Capital)",
+      "coordinate_type": "state_capital_tourism_hub",
+      "verification_status": "SUBSTANTIATED_BENCHMARK",
+      "notes": "Represents Panaji Church Square / Municipal Center, the state capital and central transit hub connecting North and South Goa as defined in intercity routes ('Goa (Panaji)') and substantiated by Fontainhas accommodations (15.4989, 73.8311); serves as the central geographic pivot for the entire state."
+    }
   }
 ]

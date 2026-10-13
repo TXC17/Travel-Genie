@@ -88,7 +88,10 @@ export interface ScheduledVisitItem {
   visit_duration_hours: number;
   travel_time_from_prev_hours: number;
   distance_from_prev_km: number;
-  item_admission_fee: number;
+  item_admission_fee?: number | null;
+  item_group_admission_fee?: number | null;
+  admission_fee_status?: 'free' | 'paid' | 'unknown' | string;
+  is_fee_verified?: boolean;
   waiting_time_hours: number;
   crowd_estimate_score: number;
   crowd_level: 'Low' | 'Moderate' | 'High';
@@ -361,12 +364,14 @@ export interface Accommodation {
   destination_id: string;
   name: string;
   accommodation_type: string;
+  category?: string;
   description: string;
   latitude: number;
   longitude: number;
   price_per_night: number;
   currency: string;
-  rating: number;
+  rating?: number | null;
+  review_count?: number | null;
   room_capacity: number;
   amenities: string[];
   image_url?: string;
@@ -386,14 +391,19 @@ export interface AccommodationRecommendationRequest {
   intercity_transport_cost?: number;
   accommodation_budget?: number;
   budget_tier?: string;
+  category?: string;
   preferred_type?: string;
   required_amenities?: string[];
   max_price_per_night?: number;
   min_rating?: number;
+  trip_id?: string;
+  itinerary_id?: string;
+  itinerary_days?: any[];
 }
 
 export interface AccommodationRecommendationItem {
   accommodation: Accommodation;
+  category?: string;
   nights: number;
   rooms_needed: number;
   price_per_night: number;
@@ -409,6 +419,14 @@ export interface AccommodationRecommendationItem {
   match_reasons: string[];
   provenance_badge: 'VERIFIED' | 'ESTIMATED' | 'UNAVAILABLE' | string;
   booking_note?: string;
+  location_suitability_score?: number;
+  estimated_total_hotel_transit_km?: number;
+  estimated_daily_hotel_transit_km?: number;
+  estimated_trip_travel_distance_km?: number;
+  location_explanation?: string;
+  distance_reduction_vs_max_km?: number;
+  provenance_distance_method?: string;
+  road_winding_factor?: number;
 }
 
 export interface AccommodationBudgetContext {
@@ -421,6 +439,7 @@ export interface AccommodationBudgetContext {
   excluded_cost_categories?: string[];
   is_estimate_complete?: boolean;
   budget_tier: string;
+  selected_category?: string;
   nights: number;
   party_size: number;
   rooms_needed: number;
@@ -438,4 +457,8 @@ export interface AccommodationRecommendationResponse {
   budget_context: AccommodationBudgetContext;
   recommendations: AccommodationRecommendationItem[];
   summary: string;
+  is_itinerary_aware?: boolean;
+  total_itinerary_days_evaluated?: number;
+  category_filter?: string;
+  category_data_status?: string | null;
 }

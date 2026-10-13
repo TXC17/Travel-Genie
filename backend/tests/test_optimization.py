@@ -971,3 +971,55 @@ def test_standalone_optimization_endpoint_rejects_mismatched_accommodation(clien
     assert res.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     data = res.json()
     assert "does not match the requested destination" in str(data["detail"])
+
+
+def test_group_admission_fee_multiplied_by_party_size():
+    """Verify that route optimizer multiplies admission fee by party size for group totals."""
+    optimizer = IntraDayRouteOptimizer()
+    attr = Attraction(
+        id="paid_monument",
+        destination_id="hampi",
+        category="heritage",
+        name="Paid Monument",
+        description="Ticketed Monument",
+        latitude=15.335,
+        longitude=76.460,
+        average_visit_duration=1.5,
+        entry_fee=50.0,
+        popularity_score=0.8,
+        rating=4.5,
+        opening_time="08:00:00",
+        closing_time="18:00:00",
+        duration_estimation_method="curated_empirical_average",
+    )
+    cluster = ClusterDaySchema(
+        cluster_id=0,
+        day_number=1,
+        centroid=ClusterCentroidSchema(latitude=15.335, longitude=76.460),
+        avg_distance_to_centroid_km=0.0,
+        max_distance_to_centroid_km=0.0,
+        dispersion_km=0.0,
+        attraction_count=1,
+        attractions=[AttractionResponse.model_validate(attr)],
+    )
+
+    # Party size of 4
+    req = DayOptimizationRequest(
+        destination_id="hampi",
+        day_number=1,
+        cluster=cluster,
+        preferred_transport="auto",
+        pace="Moderate",
+        party_size=4,
+    )
+    schedule, deferred = optimizer.optimize_day_schedule(req)
+    assert len(schedule.items) == 1
+    item = schedule.items[0]
+    # Per-person fee is 50.0
+    assert item.item_admission_fee == 50.0
+    # Group fee for party of 4 is 200.0
+    assert item.item_group_admission_fee == 200.0
+    assert item.admission_fee_status == "paid"
+    # Day total admission cost is 200.0
+    assert schedule.day_estimated_admission_cost == 200.0
+    assert schedule.day_total_estimated_cost >= 200.0

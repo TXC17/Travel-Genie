@@ -17,6 +17,7 @@ import {
   Sparkles,
   ChevronDown,
   ChevronUp,
+  MapPin,
 } from 'lucide-react';
 
 interface AccommodationCardProps {
@@ -56,17 +57,42 @@ export const AccommodationCard: React.FC<AccommodationCardProps> = ({
         {/* Top Header: Image / Type / Badges */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Category badge */}
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider border ${
+                (accommodation.category || item.category) === 'Ultra-Luxury'
+                  ? 'bg-purple-100 dark:bg-purple-950/70 text-purple-900 dark:text-purple-300 border-purple-200 dark:border-purple-800'
+                  : (accommodation.category || item.category) === 'Ultra-Budget'
+                  ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-900 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                  : 'bg-slate-100 dark:bg-neutral-800 text-slate-800 dark:text-neutral-200 border-slate-200 dark:border-neutral-700'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{accommodation.category || item.category || 'Moderate / Mid-Range'}</span>
+            </span>
+
             {/* Type badge */}
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 border border-slate-200 dark:border-neutral-700">
               {typeIcon}
               <span>{accommodation.accommodation_type}</span>
             </span>
 
-            {/* Rating */}
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-amber-50 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-              <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
-              <span>{accommodation.rating.toFixed(1)}</span>
-            </span>
+            {/* Rating & Review Count (Requirement E: honest labelling) */}
+            {accommodation.rating !== null && accommodation.rating !== undefined && accommodation.rating > 0 ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-amber-50 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
+                <span>{accommodation.rating.toFixed(1)}</span>
+                {accommodation.review_count ? (
+                  <span className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold">
+                    ({accommodation.review_count})
+                  </span>
+                ) : null}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 border border-slate-200 dark:border-neutral-700">
+                <span>Guest ratings unavailable</span>
+              </span>
+            )}
 
             {/* Provenance Badge */}
             {item.provenance_badge === 'VERIFIED' ? (
@@ -86,6 +112,21 @@ export const AccommodationCard: React.FC<AccommodationCardProps> = ({
               <Sparkles className="w-3 h-3" />
               <span>{Math.round(match_score * 100)}% Match</span>
             </span>
+
+            {/* Location Suitability Badge */}
+            {item.location_suitability_score !== undefined && item.location_suitability_score !== null && (
+              <span
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-blue-50 dark:bg-blue-950/70 text-blue-900 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                title="Estimated transit distance via Haversine × 1.30 road winding factor"
+              >
+                <MapPin className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                <span>
+                  {item.estimated_daily_hotel_transit_km !== undefined
+                    ? `~${item.estimated_daily_hotel_transit_km} km/day transit`
+                    : 'Location-Optimized'}
+                </span>
+              </span>
+            )}
           </div>
 
           {/* Pricing Highlight */}
@@ -202,6 +243,15 @@ export const AccommodationCard: React.FC<AccommodationCardProps> = ({
                 </li>
               ))}
             </ul>
+
+            {item.estimated_total_hotel_transit_km !== undefined && (
+              <div className="p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-900/50 text-[11px] text-blue-900 dark:text-blue-300">
+                <span className="font-bold">Estimated Itinerary Transit: </span>
+                <span>
+                  ~{item.estimated_total_hotel_transit_km} km total hotel transit across trip days (~{item.estimated_daily_hotel_transit_km} km/day avg). Road distances are estimates computed using Haversine × 1.30 winding factor.
+                </span>
+              </div>
+            )}
 
             {/* Direct Links and Booking Contact */}
             <div className="pt-2 flex flex-wrap items-center gap-3 text-[11px]">

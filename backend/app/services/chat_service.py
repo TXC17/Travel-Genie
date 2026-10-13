@@ -4,6 +4,7 @@ Orchestrates natural language parsing, the deterministic recommendation/clusteri
 diff calculation, and database persistence.
 """
 
+from datetime import date, timedelta
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from app.models.chat import ChatSession, ChatMessage
@@ -111,13 +112,16 @@ class ChatService:
         dest_name = dest.name if dest else (constraints.destination_name or (constraints.destination_id or "Trip").title())
 
         if not trip:
+            start_date_val = constraints.start_date or "2026-11-01"
+            duration_val = constraints.duration_days or 3
+            end_date_val = (date.fromisoformat(start_date_val) + timedelta(days=max(0, duration_val - 1))).isoformat()
             trip = Trip(
                 creator_id=user_id,
                 destination_id=constraints.destination_id or "hampi",
-                title=f"{dest_name} {constraints.duration_days or 3}-Day Trip",
-                start_date=constraints.start_date or "2026-11-01",
-                end_date="2026-11-03",
-                number_of_days=constraints.duration_days or 3,
+                title=f"{dest_name} {duration_val}-Day Trip",
+                start_date=start_date_val,
+                end_date=end_date_val,
+                number_of_days=duration_val,
                 total_budget=constraints.total_budget or 15000.0,
                 party_size=constraints.party_size or 1,
             )

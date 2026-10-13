@@ -49,7 +49,10 @@ class ScheduledVisitItemSchema(BaseModel):
     visit_duration_hours: float
     travel_time_from_prev_hours: float = 0.0
     distance_from_prev_km: float = 0.0
-    item_admission_fee: float = 0.0
+    item_admission_fee: Optional[float] = 0.0
+    item_group_admission_fee: Optional[float] = 0.0
+    admission_fee_status: str = Field(default="free", description="'free', 'paid', or 'unknown'")
+    is_fee_verified: bool = Field(default=True, description="Whether admission fee is verified")
     waiting_time_hours: float = 0.0
     crowd_estimate_score: float = 0.5
     crowd_level: str = "Moderate"
@@ -142,6 +145,7 @@ class DayOptimizationRequest(BaseModel):
     preferred_transport: str = Field(default="auto", description="walking, auto, car, taxi, rental, public")
     pace: str = Field(default="Moderate", description="Relaxed (6h limit), Moderate (8h limit), Intense (10h limit)")
     day_start_time: str = Field(default="09:00", description="Start time in HH:MM")
+    party_size: int = Field(default=1, ge=1, le=50, description="Traveling party size for group admission costs")
     accommodation: Optional[RouteEndpointSchema] = Field(
         default=None,
         description="Optional lodging endpoint for daily route origin and return",

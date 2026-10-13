@@ -37,6 +37,18 @@ export const ItineraryPage: React.FC = () => {
   const [selectedAccommodation, setSelectedAccommodation] = useState<AccommodationRecommendationItem | null>(
     (location.state?.selectedAccommodation as AccommodationRecommendationItem) || null
   );
+  const [tripBudget, setTripBudget] = useState<number | undefined>(
+    (location.state?.generatedData as GenerateItineraryResponse | undefined)?.constraints?.total_budget
+  );
+  const [partySize, setPartySize] = useState<number | undefined>(
+    (location.state?.generatedData as GenerateItineraryResponse | undefined)?.constraints?.party_size
+  );
+  const [startDate, setStartDate] = useState<string | undefined>(
+    (location.state?.generatedData as GenerateItineraryResponse | undefined)?.constraints?.start_date
+  );
+  const [durationDays, setDurationDays] = useState<number | undefined>(
+    (location.state?.generatedData as GenerateItineraryResponse | undefined)?.constraints?.duration_days
+  );
 
   useEffect(() => {
     // Check if passed via router state
@@ -44,6 +56,32 @@ export const ItineraryPage: React.FC = () => {
     if (stateData && stateData.itinerary) {
       setItineraryData(stateData.itinerary);
       setTripTitle(stateData.title || `${stateData.destination_id.toUpperCase()} Itinerary`);
+      if (stateData.constraints) {
+        if (stateData.constraints.total_budget !== undefined) {
+          setTripBudget(stateData.constraints.total_budget);
+        }
+        if (stateData.constraints.party_size !== undefined) {
+          setPartySize(stateData.constraints.party_size);
+        }
+        if (stateData.constraints.start_date) {
+          setStartDate(stateData.constraints.start_date);
+        }
+        if (stateData.constraints.duration_days !== undefined) {
+          setDurationDays(stateData.constraints.duration_days);
+        }
+      }
+      // If constraints are missing party_size or total_budget, fetch from trip if ID is available
+      if (
+        (stateData.constraints?.total_budget === undefined || stateData.constraints?.party_size === undefined) &&
+        (id || stateData.trip_id)
+      ) {
+        tripService.getTrip(id || stateData.trip_id).then((trip) => {
+          if (trip.total_budget !== undefined) setTripBudget(trip.total_budget);
+          if (trip.party_size !== undefined) setPartySize(trip.party_size);
+          if (trip.start_date) setStartDate(trip.start_date);
+          if (trip.number_of_days !== undefined) setDurationDays(trip.number_of_days);
+        }).catch(() => {});
+      }
     } else if (id) {
       loadTripItinerary(id);
     }
@@ -55,6 +93,18 @@ export const ItineraryPage: React.FC = () => {
       setError(null);
       const trip = await tripService.getTrip(tripId);
       setTripTitle(trip.title);
+      if (trip.total_budget !== undefined) {
+        setTripBudget(trip.total_budget);
+      }
+      if (trip.party_size !== undefined) {
+        setPartySize(trip.party_size);
+      }
+      if (trip.start_date) {
+        setStartDate(trip.start_date);
+      }
+      if (trip.number_of_days !== undefined) {
+        setDurationDays(trip.number_of_days);
+      }
 
       // Reconstruct or extract latest itinerary
       if (trip.itineraries && trip.itineraries.length > 0) {
@@ -246,17 +296,18 @@ export const ItineraryPage: React.FC = () => {
       {/* Intercity Transit Options Assistant */}
       <IntercityTransportCard
         destinationId={itineraryData.destination_id}
-        partySize={2}
-        budget={itineraryData.total_estimated_cost}
+        partySize={partySize}
+        budget={tripBudget}
       />
 
       {/* Curated Lodging & Accommodations Assistant */}
       <AccommodationPicker
         destinationId={itineraryData.destination_id}
-        partySize={2}
-        totalBudget={itineraryData.total_estimated_cost || 15000}
-        startDate={new Date().toISOString().split('T')[0]}
-        durationDays={itineraryData.total_days || 3}
+        partySize={partySize}
+        totalBudget={tripBudget}
+        startDate={startDate}
+        durationDays={durationDays ?? itineraryData.total_days}
+        itinerary={itineraryData}
         selectedAccommodation={selectedAccommodation}
         onSelectAccommodation={setSelectedAccommodation}
       />

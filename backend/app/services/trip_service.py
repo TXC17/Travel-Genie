@@ -2,7 +2,7 @@
 Trip and Preference Management Business Logic Service.
 """
 
-from datetime import date
+from datetime import date, timedelta
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from app.models.trip import Trip, TripPreference
@@ -39,6 +39,18 @@ class TripService:
                 detail="Maximum supported trip duration is 14 days."
             )
         return days
+
+    @staticmethod
+    def calculate_end_date(start_date_str: str, duration_days: int) -> str:
+        """Calculate inclusive trip end date string (YYYY-MM-DD): start_date + (duration_days - 1)."""
+        if duration_days < 1:
+            raise TravelGenieException(
+                status_code=400,
+                detail="Duration must be at least 1 day."
+            )
+        d_start = date.fromisoformat(start_date_str)
+        d_end = d_start + timedelta(days=duration_days - 1)
+        return d_end.isoformat()
 
     @staticmethod
     def create_trip(db: Session, user_id: str, request: TripCreateRequest) -> TripResponse:

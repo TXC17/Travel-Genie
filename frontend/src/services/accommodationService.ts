@@ -8,6 +8,7 @@ import {
 export interface AccommodationFilterParams {
   destination_id: string;
   budget_tier?: string;
+  category?: string;
   min_rating?: number;
   max_price_per_night?: number;
   accommodation_type?: string;

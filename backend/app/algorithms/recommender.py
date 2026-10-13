@@ -79,12 +79,16 @@ class MCDMRecommender:
         return 0.75
 
     def compute_budget_score(
-        self, attraction_fee: float, total_budget: float, number_of_days: int, party_size: int
+        self, attraction_fee: Optional[float], total_budget: float, number_of_days: int, party_size: int
     ) -> float:
         """
         Compute budget affordability score comparing entry fee against daily sightseeing threshold.
         Uses a smooth monotonic utility curve: S_budget = 1.0 / (1.0 + (Fee / B_thresh)).
+        If attraction_fee is None (unknown/unverified), returns a neutral prior of 0.75 rather than assuming free.
         """
+        if attraction_fee is None:
+            return 0.75
+
         if attraction_fee <= 0.0:
             return 1.0
 
@@ -120,10 +124,14 @@ class MCDMRecommender:
         elif breakdown["season_score"] <= 0.40:
             reasons.append(f"Sub-optimal weather conditions in {month_name}")
 
-        if attraction.entry_fee == 0.0:
+        if attraction.entry_fee is None:
+            reasons.append("Admission fee unverified / not officially published")
+        elif attraction.entry_fee == 0.0:
             reasons.append("Free admission")
         elif breakdown["budget_score"] >= 0.85:
             reasons.append(f"Nominal admission fee (₹{int(attraction.entry_fee)})")
+        else:
+            reasons.append(f"Paid admission (₹{int(attraction.entry_fee)}/person)")
 
         if breakdown["popularity_score"] >= 0.85:
             reasons.append("Highly rated marquee landmark")
@@ -168,7 +176,7 @@ class MCDMRecommender:
 
             # 5. Budget Affordability
             s_budget = self.compute_budget_score(
-                float(attr.entry_fee or 0.0),
+                float(attr.entry_fee) if attr.entry_fee is not None else None,
                 request.total_budget,
                 request.number_of_days,
                 request.party_size,

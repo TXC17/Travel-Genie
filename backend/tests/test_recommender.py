@@ -314,3 +314,69 @@ def test_get_mcdm_weights(client):
     assert data["weight_popularity"] == 0.15
     assert data["weight_rating"] == 0.15
     assert data["weight_budget"] == 0.10
+
+
+def test_paid_and_free_attractions_coexist_in_recommendations(client, db_session):
+    """Verify that both paid and free attractions participate and can coexist in ranking."""
+    seed_database(db_session)
+    req = {
+        "destination_id": "hampi",
+        "travel_month": 11,
+        "interests": ["heritage"],
+        "total_budget": 15000.0,
+        "number_of_days": 3,
+        "party_size": 2,
+    }
+    res = client.post("/api/v1/recommendations/attractions", json=req)
+    assert res.status_code == status.HTTP_200_OK
+    ranked = res.json()
+    assert len(ranked) > 0
+
+    has_paid = any(r["attraction"]["entry_fee"] > 0 for r in ranked)
+    has_free = any(r["attraction"]["entry_fee"] == 0.0 for r in ranked)
+    assert has_paid is True
+    assert has_free is True
+
+
+def test_unknown_admission_fee_not_treated_as_free():
+    """Verify that unknown/None admission fee receives neutral score (0.75) and not 1.0 (free)."""
+    recommender = MCDMRecommender()
+
+    # Free admission gets 1.0
+    score_free = recommender.compute_budget_score(
+        attraction_fee=0.0, total_budget=10000.0, number_of_days=3, party_size=2
+    )
+    assert score_free == 1.0
+
+    # None admission gets neutral 0.75, strictly less than free
+    score_none = recommender.compute_budget_score(
+        attraction_fee=None, total_budget=10000.0, number_of_days=3, party_size=2
+    )
+    assert score_none == 0.75
+    assert score_none < score_free
+
+    # Explanation indicates unverified status
+    attr = Attraction(
+        id="unverified_fee_attr",
+        destination_id="hampi",
+        category="heritage",
+        name="Unverified Ruins",
+        description="Historic site",
+        latitude=15.3,
+        longitude=76.4,
+        average_visit_duration=1.0,
+        entry_fee=None,
+        popularity_score=0.7,
+        rating=4.2,
+        duration_estimation_method="curated_empirical_average",
+    )
+    breakdown = {
+        "interest_score": 0.5,
+        "season_score": 0.75,
+        "popularity_score": 0.7,
+        "rating_score": 0.84,
+        "budget_score": 0.75,
+        "composite_score": 0.70,
+    }
+    explanation = recommender.generate_explanation(attr, breakdown, travel_month=11)
+    assert "unverified" in explanation.lower()
