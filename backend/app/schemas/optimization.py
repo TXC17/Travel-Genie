@@ -10,6 +10,16 @@ from app.schemas.attraction import AttractionResponse
 from app.schemas.clustering import ClusterDaySchema
 
 
+class RouteEndpointSchema(BaseModel):
+    id: str
+    name: str
+    latitude: float = Field(..., ge=-90.0, le=90.0)
+    longitude: float = Field(..., ge=-180.0, le=180.0)
+    endpoint_type: str = Field(default="accommodation", description="accommodation, attraction, or transport_hub")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class RouteLegSchema(BaseModel):
     from_attraction_id: str
     from_attraction_name: str
@@ -19,6 +29,12 @@ class RouteLegSchema(BaseModel):
     travel_time_hours: float
     transport_mode: str
     estimated_transit_cost: float
+    leg_type: str = Field(
+        default="attraction_to_attraction",
+        description="origin_to_first_attraction, attraction_to_attraction, or last_attraction_to_destination",
+    )
+    from_type: str = Field(default="attraction", description="accommodation or attraction")
+    to_type: str = Field(default="attraction", description="accommodation or attraction")
     provenance_method: str = "haversine_with_road_winding_factor"
     provenance_classification: str = "computed_estimate"
 
@@ -92,6 +108,15 @@ class OptimizedDayScheduleSchema(BaseModel):
     day_estimated_admission_cost: float
     day_estimated_transit_cost: float
     day_total_estimated_cost: float
+    start_location_type: str = Field(default="attraction", description="accommodation or attraction")
+    start_location_name: Optional[str] = None
+    end_location_type: str = Field(default="attraction", description="accommodation or attraction")
+    end_location_name: Optional[str] = None
+    is_round_trip: bool = False
+    accommodation_origin_leg: Optional[RouteLegSchema] = None
+    accommodation_return_leg: Optional[RouteLegSchema] = None
+    attraction_to_attraction_distance_km: float = 0.0
+    attraction_to_attraction_duration_hours: float = 0.0
     route_sequence: List[int] = Field(default_factory=list, description="0-indexed visit permutation order")
     ordered_attractions: List[AttractionResponse] = Field(default_factory=list, description="Sequenced attractions")
     optimization_metrics: DayOptimizationMetricsSchema
@@ -117,6 +142,14 @@ class DayOptimizationRequest(BaseModel):
     preferred_transport: str = Field(default="auto", description="walking, auto, car, taxi, rental, public")
     pace: str = Field(default="Moderate", description="Relaxed (6h limit), Moderate (8h limit), Intense (10h limit)")
     day_start_time: str = Field(default="09:00", description="Start time in HH:MM")
+    accommodation: Optional[RouteEndpointSchema] = Field(
+        default=None,
+        description="Optional lodging endpoint for daily route origin and return",
+    )
+    return_to_accommodation: bool = Field(
+        default=True,
+        description="Whether route returns to lodging at day end",
+    )
     mcdm_scores_map: Optional[Dict[str, float]] = Field(
         default=None,
         description="Optional precomputed MCDM score per attraction ID for priority pruning"
@@ -135,6 +168,14 @@ class MultiDayTripOptimizationRequest(BaseModel):
     day_start_time: str = Field(default="09:00")
     total_budget: float = Field(default=15000.0, ge=500.0)
     party_size: int = Field(default=1, ge=1, le=50)
+    accommodation: Optional[RouteEndpointSchema] = Field(
+        default=None,
+        description="Optional lodging endpoint for daily route origin and return",
+    )
+    return_to_accommodation: bool = Field(
+        default=True,
+        description="Whether daily route returns to lodging at day end",
+    )
     mcdm_scores_map: Optional[Dict[str, float]] = Field(default=None)
 
     model_config = ConfigDict(from_attributes=True)

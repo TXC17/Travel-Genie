@@ -2,14 +2,15 @@ import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { OptimizedDaySchedule } from '../../types';
-import { Clock, MapPin, DollarSign, Users } from 'lucide-react';
+import { OptimizedDaySchedule, Accommodation } from '../../types';
+import { Clock, MapPin, DollarSign, Users, Hotel } from 'lucide-react';
 
 interface MapComponentProps {
   days: OptimizedDaySchedule[];
   selectedDayNumber?: number;
   center?: [number, number];
   zoom?: number;
+  accommodation?: Accommodation | null;
 }
 
 const DAY_COLORS = [
@@ -27,11 +28,14 @@ export const MapComponent: React.FC<MapComponentProps> = ({
   selectedDayNumber,
   center = [15.335, 76.46],
   zoom = 13,
+  accommodation = null,
 }) => {
-  // Determine map center from items if available
+  // Determine map center from items or accommodation if available
   const allItems = days.flatMap((d) => d.items);
   const defaultCenter: [number, number] =
-    allItems.length > 0
+    accommodation?.latitude && accommodation?.longitude
+      ? [accommodation.latitude, accommodation.longitude]
+      : allItems.length > 0
       ? [allItems[0].attraction.latitude, allItems[0].attraction.longitude]
       : center;
 
@@ -63,6 +67,33 @@ export const MapComponent: React.FC<MapComponentProps> = ({
     });
   };
 
+  const createAccommodationMarker = () => {
+    return L.divIcon({
+      className: 'custom-hotel-pin',
+      html: `
+        <div style="
+          background-color: #f59e0b;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 700;
+          font-size: 16px;
+          border: 3px solid white;
+          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.5);
+          transform: translate(-50%, -50%);
+        ">
+          🏨
+        </div>
+      `,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
+    });
+  };
+
   const daysToRender = selectedDayNumber
     ? days.filter((d) => d.day_number === selectedDayNumber)
     : days;
@@ -80,12 +111,67 @@ export const MapComponent: React.FC<MapComponentProps> = ({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {daysToRender.map((day, dayIdx) => {
+        {/* Accommodation Marker (if selected) */}
+        {accommodation && accommodation.latitude && accommodation.longitude && (
+          <Marker
+            position={[accommodation.latitude, accommodation.longitude]}
+            icon={createAccommodationMarker()}
+          >
+            <Popup className="custom-leaflet-popup">
+              <div className="p-1 min-w-[200px]">
+                <div className="flex items-center gap-1.5 mb-1 text-xs font-bold uppercase tracking-wider text-amber-600">
+                  <Hotel className="w-3.5 h-3.5" />
+                  <span>Selected Accommodation (Base)</span>
+                </div>
+                <h4 className="text-sm font-bold text-slate-900 mb-1">
+                  {accommodation.name}
+                </h4>
+                <p className="text-xs text-slate-500 capitalize mb-2">
+                  {accommodation.accommodation_type}
+                </p>
+                <div className="space-y-1 text-xs text-slate-600 border-t border-slate-100 pt-2">
+                  <div className="flex items-center gap-1.5">
+                    <DollarSign className="w-3.5 h-3.5 text-slate-400" />
+                    <span>₹{accommodation.price_per_night} / night</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-amber-500 font-bold">★</span>
+                    <span>{accommodation.rating} / 5.0</span>
+                  </div>
+                </div>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+
+        {daysToRender.map((day) => {
           const color = DAY_COLORS[(day.day_number - 1) % DAY_COLORS.length];
-          const positions: [number, number][] = day.items.map((item) => [
-            item.attraction.latitude,
-            item.attraction.longitude,
-          ]);
+          const positions: [number, number][] = [];
+
+          // Prepend hotel coordinates if day route originates from accommodation
+          if (
+            accommodation &&
+            day.start_location_type === 'accommodation' &&
+            accommodation.latitude &&
+            accommodation.longitude
+          ) {
+            positions.push([accommodation.latitude, accommodation.longitude]);
+          }
+
+          // Add attraction positions
+          day.items.forEach((item) => {
+            positions.push([item.attraction.latitude, item.attraction.longitude]);
+          });
+
+          // Append hotel coordinates if day route returns to accommodation
+          if (
+            accommodation &&
+            day.end_location_type === 'accommodation' &&
+            accommodation.latitude &&
+            accommodation.longitude
+          ) {
+            positions.push([accommodation.latitude, accommodation.longitude]);
+          }
 
           return (
             <React.Fragment key={`day-map-${day.day_number}`}>
@@ -159,6 +245,12 @@ export const MapComponent: React.FC<MapComponentProps> = ({
       {/* Map Legend */}
       <div className="absolute bottom-4 left-4 z-[400] bg-white/95 dark:bg-black/95 backdrop-blur-md rounded-xl p-3 shadow-lg border border-slate-200 dark:border-neutral-800 text-xs flex flex-wrap gap-3">
         <span className="font-bold text-slate-700 dark:text-neutral-300 self-center">Day Legend:</span>
+        {accommodation && (
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-amber-500 flex items-center justify-center text-[8px] text-white">🏨</span>
+            <span className="font-medium text-amber-700 dark:text-amber-400">Hotel Base</span>
+          </div>
+        )}
         {days.map((day) => {
           const color = DAY_COLORS[(day.day_number - 1) % DAY_COLORS.length];
           return (

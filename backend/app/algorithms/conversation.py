@@ -339,14 +339,27 @@ class ConversationalEngine:
         for day in itinerary.days:
             lines.append(f"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             lines.append(f"🗓️ **DAY {day.day_number}** ({day.day_start_time} - {day.day_end_time})")
+            if day.start_location_type == "accommodation" and day.start_location_name:
+                hotel_info = f"🏨 **Base**: {day.start_location_name}"
+                if day.is_round_trip:
+                    hotel_info += " (Round trip)"
+                lines.append(hotel_info)
             lines.append(
                 f"🚕 **Transit Mode**: {day.recommended_transport.title()}  |  🛣️ **Day Travel**: {day.total_travel_distance_km:.1f} km ({day.total_travel_duration_hours:.2f}h)  |  📉 **Saved**: {day.optimization_metrics.distance_reduction_km:.2f} km ({day.optimization_metrics.distance_reduction_pct:.1f}%)"
             )
             lines.append("📍 **Planned Activities:**")
+            if day.accommodation_origin_leg:
+                lines.append(
+                    f"  🚗 *Depart from {day.accommodation_origin_leg.from_attraction_name}* ➔ {day.accommodation_origin_leg.to_attraction_name} ({day.accommodation_origin_leg.distance_km:.1f} km | {int(round(day.accommodation_origin_leg.travel_time_hours * 60))} min)"
+                )
             for item in day.items:
                 notes = f"🎟️ Fee: ₹{item.item_admission_fee:.0f}" if item.item_admission_fee > 0 else "🎟️ Free Entry"
                 lines.append(
                     f"  {item.visit_order}. 🏛️ **{item.attraction.name}** [{item.arrival_time} - {item.departure_time}] ({notes})"
+                )
+            if day.accommodation_return_leg:
+                lines.append(
+                    f"  🚗 *Return to {day.accommodation_return_leg.to_attraction_name}* from {day.accommodation_return_leg.from_attraction_name} ({day.accommodation_return_leg.distance_km:.1f} km | {int(round(day.accommodation_return_leg.travel_time_hours * 60))} min)"
                 )
 
         if itinerary.deferred_attractions:

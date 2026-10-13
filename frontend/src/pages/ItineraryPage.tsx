@@ -235,6 +235,7 @@ export const ItineraryPage: React.FC = () => {
               <MapComponent
                 days={itineraryData.days}
                 selectedDayNumber={selectedDay || undefined}
+                accommodation={selectedAccommodation?.accommodation || null}
               />
             </div>
           </div>

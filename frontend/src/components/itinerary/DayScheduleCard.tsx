@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   ArrowDown,
+  Hotel,
 } from 'lucide-react';
 
 interface DayScheduleCardProps {
@@ -38,6 +39,12 @@ export const DayScheduleCard: React.FC<DayScheduleCardProps> = ({ day }) => {
 
         {/* Badges */}
         <div className="flex flex-wrap items-center gap-2">
+          {day.start_location_type === 'accommodation' && day.start_location_name && (
+            <span className="liquid-btn px-3 py-1 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 text-amber-700 dark:text-amber-300 text-xs font-semibold rounded-full flex items-center gap-1.5">
+              <Hotel className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span>Base: {day.start_location_name}</span>
+            </span>
+          )}
           <span className="liquid-btn px-3 py-1 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded-full flex items-center gap-1.5">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             {day.feasibility_status === 'FEASIBLE' ? '100% Feasible' : 'Feasible (Pruned)'}
@@ -75,8 +82,46 @@ export const DayScheduleCard: React.FC<DayScheduleCardProps> = ({ day }) => {
 
       {/* Timeline Waypoints */}
       <div className="mt-6 space-y-4">
+        {/* Accommodation Departure Banner */}
+        {day.accommodation_origin_leg && (
+          <div className="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 font-bold shrink-0">
+                🏨
+              </span>
+              <div>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  Depart from {day.accommodation_origin_leg.from_attraction_name}
+                </span>
+                <span className="block text-slate-500 dark:text-neutral-400 text-[11px]">
+                  Daily Tour Origin &bull; {day.day_start_time}
+                </span>
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <span className="font-semibold text-slate-700 dark:text-neutral-300">
+                {day.accommodation_origin_leg.distance_km} km ({Math.round(day.accommodation_origin_leg.travel_time_hours * 60)} min)
+              </span>
+              <span className="block text-[11px] text-amber-700 dark:text-amber-400 font-medium">
+                ₹{day.accommodation_origin_leg.estimated_transit_cost}
+              </span>
+            </div>
+          </div>
+        )}
+
         {day.items.map((item, idx) => {
-          const leg = idx > 0 ? day.legs[idx - 1] : null;
+          // If accommodation leg exists, legs[0] is origin leg, so legs between item 0 and item 1 is legs[1]
+          const leg = day.accommodation_origin_leg
+            ? day.legs.find(
+                (l) =>
+                  l.leg_type === 'attraction_to_attraction' &&
+                  idx > 0 &&
+                  l.from_attraction_id === day.items[idx - 1].attraction.id &&
+                  l.to_attraction_id === item.attraction.id
+              )
+            : idx > 0
+            ? day.legs[idx - 1]
+            : null;
 
           return (
             <React.Fragment key={`item-${item.attraction.id}-${item.visit_order}`}>
@@ -144,6 +189,33 @@ export const DayScheduleCard: React.FC<DayScheduleCardProps> = ({ day }) => {
             </React.Fragment>
           );
         })}
+
+        {/* Accommodation Return Banner */}
+        {day.accommodation_return_leg && (
+          <div className="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 flex items-center justify-between gap-3 text-xs mt-3">
+            <div className="flex items-center gap-2.5">
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 font-bold shrink-0">
+                🏨
+              </span>
+              <div>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  Return to {day.accommodation_return_leg.to_attraction_name}
+                </span>
+                <span className="block text-slate-500 dark:text-neutral-400 text-[11px]">
+                  Daily Tour Return &bull; {day.day_end_time}
+                </span>
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <span className="font-semibold text-slate-700 dark:text-neutral-300">
+                {day.accommodation_return_leg.distance_km} km ({Math.round(day.accommodation_return_leg.travel_time_hours * 60)} min)
+              </span>
+              <span className="block text-[11px] text-amber-700 dark:text-amber-400 font-medium">
+                ₹{day.accommodation_return_leg.estimated_transit_cost}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

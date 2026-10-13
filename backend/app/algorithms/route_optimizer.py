@@ -21,6 +21,7 @@ from app.models.attraction import Attraction
 from app.schemas.attraction import AttractionResponse
 from app.schemas.clustering import ClusterDaySchema
 from app.schemas.optimization import (
+    RouteEndpointSchema,
     RouteLegSchema,
     ScheduledVisitItemSchema,
     DayOptimizationMetricsSchema,
@@ -112,12 +113,24 @@ class IntraDayRouteOptimizer:
         return f"{h:02d}:{m:02d}"
 
     def build_distance_and_time_matrices(
-        self, attractions: List[AttractionResponse], transport_mode: str
+        self,
+        attractions: List[AttractionResponse],
+        transport_mode: str,
+        accommodation: Optional[RouteEndpointSchema] = None,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Construct NxN distance (km) and travel duration (hours) matrices.
+        When accommodation is provided, node 0 represents the accommodation and
+        nodes 1..M represent attractions (N = M + 1).
+        When accommodation is None, nodes 0..N-1 represent attractions.
         """
-        n = len(attractions)
+        nodes: List[Tuple[float, float]] = []
+        if accommodation:
+            nodes.append((accommodation.latitude, accommodation.longitude))
+        for attr in attractions:
+            nodes.append((attr.latitude, attr.longitude))
+
+        n = len(nodes)
         dist_matrix = np.zeros((n, n), dtype=float)
         time_matrix = np.zeros((n, n), dtype=float)
         speed = self.TRANSPORT_SPEEDS_KMH.get(transport_mode, 25.0)
@@ -126,10 +139,10 @@ class IntraDayRouteOptimizer:
             for j in range(n):
                 if i != j:
                     d = self.estimate_road_distance_km(
-                        attractions[i].latitude,
-                        attractions[i].longitude,
-                        attractions[j].latitude,
-                        attractions[j].longitude,
+                        nodes[i][0],
+                        nodes[i][1],
+                        nodes[j][0],
+                        nodes[j][1],
                     )
                     t = d / speed
                     dist_matrix[i, j] = d
@@ -175,11 +188,56 @@ class IntraDayRouteOptimizer:
         _, opt_path = get_min_path(1, 0)
         return opt_path
 
+    def _solve_tsp_held_karp_closed(self, dist_matrix: np.ndarray) -> List[int]:
+        """
+        Solve closed TSP tour starting and ending at node 0 minimizing total travel distance
+        using the Held-Karp dynamic programming algorithm.
+        Returns the ordered nodes sequence starting at 0: [0, v_1, v_2, ..., v_{n-1}].
+        """
+        n = dist_matrix.shape[0]
+        if n <= 1:
+            return [0]
+        if n == 2:
+            return [0, 1]
+
+        memo = {}
+
+        def get_min_path(mask, curr):
+            # All nodes visited; cost to return to start node 0
+            if mask == (1 << n) - 1:
+                return dist_matrix[curr, 0], [curr]
+
+            state = (mask, curr)
+            if state in memo:
+                return memo[state]
+
+            min_cost = float("inf")
+            best_path = []
+
+            for nxt in range(n):
+                if not (mask & (1 << nxt)):
+                    cost, path = get_min_path(mask | (1 << nxt), nxt)
+                    total_cost = dist_matrix[curr, nxt] + cost
+                    if total_cost < min_cost:
+                        min_cost = total_cost
+                        best_path = [curr] + path
+
+            memo[state] = (min_cost, best_path)
+            return min_cost, best_path
+
+        _, opt_path = get_min_path(1, 0)
+        return opt_path
+
     def solve_tsp_sequence(
-        self, dist_matrix: np.ndarray, time_matrix: np.ndarray
+        self,
+        dist_matrix: np.ndarray,
+        time_matrix: np.ndarray,
+        return_to_start: bool = False,
     ) -> Tuple[List[int], str]:
         """
-        Solve optimal open Hamiltonian visit path through all nodes.
+        Solve optimal TSP visit sequence starting at node 0 through all nodes.
+        If return_to_start is True, optimizes a closed loop returning to node 0.
+        If return_to_start is False, optimizes an open Hamiltonian path starting at node 0.
         Uses Google OR-Tools if available; otherwise uses exact Held-Karp dynamic programming.
         """
         n = dist_matrix.shape[0]
@@ -192,22 +250,35 @@ class IntraDayRouteOptimizer:
             try:
                 int_dist_matrix = (dist_matrix * 1000).astype(int)
 
-                # Open TSP with fixed start at node 0 and dummy terminal node n
-                extended_matrix = np.zeros((n + 1, n + 1), dtype=int)
-                extended_matrix[:n, :n] = int_dist_matrix
-                extended_matrix[:n, n] = 0
-                extended_matrix[n, :] = 0
+                if return_to_start:
+                    # Closed TSP starting and ending at depot node 0
+                    manager = pywrapcp.RoutingIndexManager(n, 1, 0)
+                    routing = pywrapcp.RoutingModel(manager)
 
-                manager = pywrapcp.RoutingIndexManager(n + 1, 1, [0], [n])
-                routing = pywrapcp.RoutingModel(manager)
+                    def distance_callback_closed(from_index, to_index):
+                        from_node = manager.IndexToNode(from_index)
+                        to_node = manager.IndexToNode(to_index)
+                        return int(int_dist_matrix[from_node][to_node])
 
-                def distance_callback(from_index, to_index):
-                    from_node = manager.IndexToNode(from_index)
-                    to_node = manager.IndexToNode(to_index)
-                    return int(extended_matrix[from_node][to_node])
+                    transit_callback_index = routing.RegisterTransitCallback(distance_callback_closed)
+                    routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
+                else:
+                    # Open TSP with fixed start at node 0 and dummy terminal node n
+                    extended_matrix = np.zeros((n + 1, n + 1), dtype=int)
+                    extended_matrix[:n, :n] = int_dist_matrix
+                    extended_matrix[:n, n] = 0
+                    extended_matrix[n, :] = 0
 
-                transit_callback_index = routing.RegisterTransitCallback(distance_callback)
-                routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
+                    manager = pywrapcp.RoutingIndexManager(n + 1, 1, [0], [n])
+                    routing = pywrapcp.RoutingModel(manager)
+
+                    def distance_callback_open(from_index, to_index):
+                        from_node = manager.IndexToNode(from_index)
+                        to_node = manager.IndexToNode(to_index)
+                        return int(extended_matrix[from_node][to_node])
+
+                    transit_callback_index = routing.RegisterTransitCallback(distance_callback_open)
+                    routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
 
                 search_parameters = pywrapcp.DefaultRoutingSearchParameters()
                 search_parameters.first_solution_strategy = (
@@ -235,7 +306,10 @@ class IntraDayRouteOptimizer:
                 pass
 
         # Exact Held-Karp Dynamic Programming Solver
-        opt_path = self._solve_tsp_held_karp_open(dist_matrix)
+        if return_to_start:
+            opt_path = self._solve_tsp_held_karp_closed(dist_matrix)
+        else:
+            opt_path = self._solve_tsp_held_karp_open(dist_matrix)
         return opt_path, "OPTIMAL_HELD_KARP"
 
     def simulate_day_timeline(
@@ -247,10 +321,26 @@ class IntraDayRouteOptimizer:
         transport_mode: str,
         start_time_hours: float,
         max_daily_hours: float,
-    ) -> Tuple[bool, List[ScheduledVisitItemSchema], List[RouteLegSchema], Dict[str, float], Optional[str]]:
+        accommodation: Optional[RouteEndpointSchema] = None,
+        return_to_accommodation: bool = True,
+    ) -> Tuple[
+        bool,
+        List[ScheduledVisitItemSchema],
+        List[RouteLegSchema],
+        Dict[str, float],
+        Optional[str],
+        Optional[RouteLegSchema],
+        Optional[RouteLegSchema],
+    ]:
         """
         Simulate sequential visit timeline, checking opening hours, waiting times, and daily limit.
-        Returns: (is_feasible, items, legs, duration_metrics, violation_reason)
+        When accommodation is present:
+          - sequence contains 0-indexed attraction indices (0..len(attractions)-1)
+          - node 0 in dist_matrix/time_matrix represents the accommodation
+          - node (node_idx + 1) in matrices represents attraction node_idx
+          - origin leg from accommodation to first attraction is added
+          - if return_to_accommodation is True, return leg from last attraction to accommodation is added
+        Returns: (is_feasible, items, legs, duration_metrics, violation_reason, origin_leg, return_leg)
         """
         items: List[ScheduledVisitItemSchema] = []
         legs: List[RouteLegSchema] = []
@@ -262,9 +352,45 @@ class IntraDayRouteOptimizer:
         total_dist = 0.0
         total_adm_cost = 0.0
         total_transit_cost = 0.0
+        attr_to_attr_dist = 0.0
+        attr_to_attr_time = 0.0
+
+        origin_leg: Optional[RouteLegSchema] = None
+        return_leg: Optional[RouteLegSchema] = None
 
         transit_rates = self.TRANSPORT_RATES.get(transport_mode, {"per_km": 15.0, "base": 30.0})
 
+        # 1. Accommodation Origin Leg (if accommodation specified)
+        if accommodation and sequence:
+            first_attr_idx = sequence[0]
+            first_attr = attractions[first_attr_idx]
+            # In matrix: accommodation is node 0, first attraction is node (first_attr_idx + 1)
+            dist_from_acc = float(dist_matrix[0, first_attr_idx + 1])
+            time_from_acc = float(time_matrix[0, first_attr_idx + 1])
+            acc_leg_cost = (dist_from_acc * transit_rates["per_km"]) + transit_rates["base"]
+
+            curr_time += time_from_acc
+            total_travel += time_from_acc
+            total_dist += dist_from_acc
+            total_transit_cost += acc_leg_cost
+
+            origin_leg = RouteLegSchema(
+                from_attraction_id=accommodation.id,
+                from_attraction_name=accommodation.name,
+                to_attraction_id=first_attr.id,
+                to_attraction_name=first_attr.name,
+                distance_km=round(dist_from_acc, 3),
+                travel_time_hours=round(time_from_acc, 3),
+                transport_mode=transport_mode,
+                estimated_transit_cost=round(acc_leg_cost, 2),
+                leg_type="origin_to_first_attraction",
+                from_type="accommodation",
+                to_type="attraction",
+                provenance_method="haversine_with_road_winding_factor",
+            )
+            legs.append(origin_leg)
+
+        # 2. Iterate through sequenced attractions
         for order_idx, node_idx in enumerate(sequence, start=1):
             attr = attractions[node_idx]
             visit_dur = max(0.5, float(attr.average_visit_duration or 1.5))
@@ -281,7 +407,7 @@ class IntraDayRouteOptimizer:
                     f"({self.format_hours_to_time(open_hours)} - {self.format_hours_to_time(close_hours)}), "
                     f"which is less than the required visit duration ({visit_dur:.1f}h)."
                 )
-                return False, [], [], {}, violation_msg
+                return False, [], [], {}, violation_msg, None, None
 
             travel_time_from_prev = 0.0
             dist_from_prev = 0.0
@@ -289,16 +415,21 @@ class IntraDayRouteOptimizer:
 
             if order_idx > 1:
                 prev_node_idx = sequence[order_idx - 2]
-                dist_from_prev = float(dist_matrix[prev_node_idx, node_idx])
-                travel_time_from_prev = float(time_matrix[prev_node_idx, node_idx])
+                mat_from = (prev_node_idx + 1) if accommodation else prev_node_idx
+                mat_to = (node_idx + 1) if accommodation else node_idx
+
+                dist_from_prev = float(dist_matrix[mat_from, mat_to])
+                travel_time_from_prev = float(time_matrix[mat_from, mat_to])
                 leg_cost = (dist_from_prev * transit_rates["per_km"]) + (
-                    transit_rates["base"] if order_idx == 2 else 0.0
+                    transit_rates["base"] if (order_idx == 2 and not accommodation) else 0.0
                 )
 
                 curr_time += travel_time_from_prev
                 total_travel += travel_time_from_prev
                 total_dist += dist_from_prev
                 total_transit_cost += leg_cost
+                attr_to_attr_dist += dist_from_prev
+                attr_to_attr_time += travel_time_from_prev
 
                 legs.append(
                     RouteLegSchema(
@@ -310,9 +441,16 @@ class IntraDayRouteOptimizer:
                         travel_time_hours=round(travel_time_from_prev, 3),
                         transport_mode=transport_mode,
                         estimated_transit_cost=round(leg_cost, 2),
+                        leg_type="attraction_to_attraction",
+                        from_type="attraction",
+                        to_type="attraction",
                         provenance_method="haversine_with_road_winding_factor",
                     )
                 )
+            elif order_idx == 1 and accommodation:
+                # Travel info from accommodation to first stop
+                travel_time_from_prev = origin_leg.travel_time_hours if origin_leg else 0.0
+                dist_from_prev = origin_leg.distance_km if origin_leg else 0.0
 
             # Arrival time at this attraction
             arrival_hours = curr_time
@@ -336,7 +474,7 @@ class IntraDayRouteOptimizer:
                     f"Visit at '{attr.name}' departs at {self.format_hours_to_time(departure_hours)}, "
                     f"which exceeds official closing time ({self.format_hours_to_time(close_hours)})."
                 )
-                return False, [], [], {}, violation_msg
+                return False, [], [], {}, violation_msg, None, None
 
             items.append(
                 ScheduledVisitItemSchema(
@@ -355,12 +493,42 @@ class IntraDayRouteOptimizer:
                 )
             )
 
+        # 3. Accommodation Return Leg (if accommodation specified and return_to_accommodation is True)
+        if accommodation and return_to_accommodation and sequence:
+            last_attr_idx = sequence[-1]
+            last_attr = attractions[last_attr_idx]
+            # In matrix: last attraction is node (last_attr_idx + 1), accommodation is node 0
+            dist_to_acc = float(dist_matrix[last_attr_idx + 1, 0])
+            time_to_acc = float(time_matrix[last_attr_idx + 1, 0])
+            ret_leg_cost = dist_to_acc * transit_rates["per_km"]
+
+            curr_time += time_to_acc
+            total_travel += time_to_acc
+            total_dist += dist_to_acc
+            total_transit_cost += ret_leg_cost
+
+            return_leg = RouteLegSchema(
+                from_attraction_id=last_attr.id,
+                from_attraction_name=last_attr.name,
+                to_attraction_id=accommodation.id,
+                to_attraction_name=accommodation.name,
+                distance_km=round(dist_to_acc, 3),
+                travel_time_hours=round(time_to_acc, 3),
+                transport_mode=transport_mode,
+                estimated_transit_cost=round(ret_leg_cost, 2),
+                leg_type="last_attraction_to_destination",
+                from_type="attraction",
+                to_type="accommodation",
+                provenance_method="haversine_with_road_winding_factor",
+            )
+            legs.append(return_leg)
+
         total_day_duration = curr_time - start_time_hours
         if total_day_duration > max_daily_hours:
             violation_msg = (
                 f"Total day duration ({total_day_duration:.2f}h) exceeds the {max_daily_hours:.1f}h pace limit."
             )
-            return False, [], [], {}, violation_msg
+            return False, [], [], {}, violation_msg, None, None
 
         metrics = {
             "total_sightseeing": round(total_sightseeing, 2),
@@ -371,9 +539,11 @@ class IntraDayRouteOptimizer:
             "total_adm_cost": round(total_adm_cost, 2),
             "total_transit_cost": round(total_transit_cost, 2),
             "total_cost": round(total_adm_cost + total_transit_cost, 2),
+            "attr_to_attr_dist": round(attr_to_attr_dist, 3),
+            "attr_to_attr_time": round(attr_to_attr_time, 3),
         }
 
-        return True, items, legs, metrics, None
+        return True, items, legs, metrics, None, origin_leg, return_leg
 
     def optimize_day_schedule(
         self, request: DayOptimizationRequest
@@ -381,6 +551,8 @@ class IntraDayRouteOptimizer:
         """
         Optimize intra-day sequence, validating daily constraints and iteratively pruning
         the lowest MCDM-scoring attractions when a cluster is time-infeasible.
+        When lodging is provided via request.accommodation, daily route starts at lodging
+        and (if request.return_to_accommodation is True) returns to lodging.
         """
         candidate_attractions = list(request.cluster.attractions)
         deferred_attractions: List[DeferredAttractionSchema] = []
@@ -388,39 +560,94 @@ class IntraDayRouteOptimizer:
         start_time_hours = self.parse_time_to_hours(request.day_start_time, 9.0)
         max_daily_hours = self.PACE_HOURS_LIMIT.get(request.pace, 8.0)
         mcdm_scores = request.mcdm_scores_map or {}
+        has_acc = request.accommodation is not None
 
         while candidate_attractions:
             # 1. Build distance and travel time matrices
             dist_matrix, time_matrix = self.build_distance_and_time_matrices(
-                candidate_attractions, request.preferred_transport
+                candidate_attractions,
+                request.preferred_transport,
+                accommodation=request.accommodation,
             )
 
             # 2. Compute Baseline (Unoptimized) Route Metrics
-            n = len(candidate_attractions)
+            # Baseline route visits attractions in original cluster order
+            n_attrs = len(candidate_attractions)
             orig_dist = 0.0
             orig_time = 0.0
-            for k in range(n - 1):
-                orig_dist += dist_matrix[k, k + 1]
-                orig_time += time_matrix[k, k + 1]
+
+            if has_acc:
+                # Baseline: accommodation (0) -> attr 0 (1) -> attr 1 (2) -> ... -> attr n_attrs-1 (n_attrs)
+                orig_dist += dist_matrix[0, 1]
+                orig_time += time_matrix[0, 1]
+                for k in range(n_attrs - 1):
+                    orig_dist += dist_matrix[k + 1, k + 2]
+                    orig_time += time_matrix[k + 1, k + 2]
+                if request.return_to_accommodation:
+                    orig_dist += dist_matrix[n_attrs, 0]
+                    orig_time += time_matrix[n_attrs, 0]
+            else:
+                for k in range(n_attrs - 1):
+                    orig_dist += dist_matrix[k, k + 1]
+                    orig_time += time_matrix[k, k + 1]
 
             # 3. Solve Optimized TSP Sequence
-            opt_sequence, solver_mode = self.solve_tsp_sequence(dist_matrix, time_matrix)
+            # If accommodation exists:
+            #   node 0 is accommodation
+            #   nodes 1..n_attrs are attractions
+            #   we solve TSP over all nodes starting at 0.
+            #   if return_to_accommodation is True, solve closed tour; otherwise open path from 0.
+            raw_sequence, solver_mode = self.solve_tsp_sequence(
+                dist_matrix,
+                time_matrix,
+                return_to_start=(has_acc and request.return_to_accommodation),
+            )
+
+            if has_acc:
+                # raw_sequence begins with node 0 (accommodation).
+                # Convert remaining nodes 1..n_attrs to 0-indexed attraction indices: (node - 1)
+                opt_attr_sequence = [node - 1 for node in raw_sequence if node != 0]
+            else:
+                opt_attr_sequence = raw_sequence
+
+            # Compute optimized route total distance and time from solver sequence
             opt_dist = 0.0
             opt_time = 0.0
-            for k in range(len(opt_sequence) - 1):
-                i1, i2 = opt_sequence[k], opt_sequence[k + 1]
-                opt_dist += dist_matrix[i1, i2]
-                opt_time += time_matrix[i1, i2]
+            if has_acc:
+                # From depot 0 along tour
+                for k in range(len(raw_sequence) - 1):
+                    i1, i2 = raw_sequence[k], raw_sequence[k + 1]
+                    opt_dist += dist_matrix[i1, i2]
+                    opt_time += time_matrix[i1, i2]
+                if request.return_to_accommodation and len(raw_sequence) > 1:
+                    last_node = raw_sequence[-1]
+                    opt_dist += dist_matrix[last_node, 0]
+                    opt_time += time_matrix[last_node, 0]
+            else:
+                for k in range(len(opt_attr_sequence) - 1):
+                    i1, i2 = opt_attr_sequence[k], opt_attr_sequence[k + 1]
+                    opt_dist += dist_matrix[i1, i2]
+                    opt_time += time_matrix[i1, i2]
 
             # 4. Simulate Daily Timeline & Check Hard Constraints
-            is_feasible, items, legs, metrics, violation_reason = self.simulate_day_timeline(
+            (
+                is_feasible,
+                items,
+                legs,
+                metrics,
+                violation_reason,
+                origin_leg,
+                return_leg,
+            ) = self.simulate_day_timeline(
                 candidate_attractions,
-                opt_sequence,
+                opt_attr_sequence,
                 dist_matrix,
                 time_matrix,
                 request.preferred_transport,
                 start_time_hours,
                 max_daily_hours,
+                accommodation=request.accommodation,
+                return_to_accommodation=request.return_to_accommodation,
             )
 
             if is_feasible:
@@ -444,6 +671,25 @@ class IntraDayRouteOptimizer:
 
                 feasibility_status = "FEASIBLE" if not deferred_attractions else "FEASIBLE_AFTER_PRUNING"
 
+                start_type = "accommodation" if has_acc else "attraction"
+                start_name = request.accommodation.name if has_acc else (
+                    candidate_attractions[opt_attr_sequence[0]].name if opt_attr_sequence else None
+                )
+                end_type = (
+                    "accommodation"
+                    if (has_acc and request.return_to_accommodation)
+                    else "attraction"
+                )
+                end_name = (
+                    request.accommodation.name
+                    if (has_acc and request.return_to_accommodation)
+                    else (
+                        candidate_attractions[opt_attr_sequence[-1]].name
+                        if opt_attr_sequence
+                        else None
+                    )
+                )
+
                 day_schedule = OptimizedDayScheduleSchema(
                     day_number=request.day_number,
                     cluster_id=request.cluster.cluster_id,
@@ -460,8 +706,17 @@ class IntraDayRouteOptimizer:
                     day_estimated_admission_cost=metrics["total_adm_cost"],
                     day_estimated_transit_cost=metrics["total_transit_cost"],
                     day_total_estimated_cost=metrics["total_cost"],
-                    route_sequence=opt_sequence,
-                    ordered_attractions=[candidate_attractions[i] for i in opt_sequence],
+                    start_location_type=start_type,
+                    start_location_name=start_name,
+                    end_location_type=end_type,
+                    end_location_name=end_name,
+                    is_round_trip=(has_acc and request.return_to_accommodation),
+                    accommodation_origin_leg=origin_leg,
+                    accommodation_return_leg=return_leg,
+                    attraction_to_attraction_distance_km=metrics.get("attr_to_attr_dist", 0.0),
+                    attraction_to_attraction_duration_hours=metrics.get("attr_to_attr_time", 0.0),
+                    route_sequence=opt_attr_sequence,
+                    ordered_attractions=[candidate_attractions[i] for i in opt_attr_sequence],
                     optimization_metrics=opt_metrics,
                     items=items,
                     legs=legs,
@@ -522,6 +777,15 @@ class IntraDayRouteOptimizer:
             day_estimated_admission_cost=0.0,
             day_estimated_transit_cost=0.0,
             day_total_estimated_cost=0.0,
+            start_location_type="accommodation" if has_acc else "attraction",
+            start_location_name=request.accommodation.name if has_acc else None,
+            end_location_type="accommodation" if (has_acc and request.return_to_accommodation) else "attraction",
+            end_location_name=request.accommodation.name if (has_acc and request.return_to_accommodation) else None,
+            is_round_trip=(has_acc and request.return_to_accommodation),
+            accommodation_origin_leg=None,
+            accommodation_return_leg=None,
+            attraction_to_attraction_distance_km=0.0,
+            attraction_to_attraction_duration_hours=0.0,
             route_sequence=[],
             ordered_attractions=[],
             optimization_metrics=fallback_metrics,
@@ -559,6 +823,8 @@ class IntraDayRouteOptimizer:
                 preferred_transport=request.preferred_transport,
                 pace=request.pace,
                 day_start_time=request.day_start_time,
+                accommodation=request.accommodation,
+                return_to_accommodation=request.return_to_accommodation,
                 mcdm_scores_map=request.mcdm_scores_map,
             )
 

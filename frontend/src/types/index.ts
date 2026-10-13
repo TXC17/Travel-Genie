@@ -73,6 +73,9 @@ export interface RouteLeg {
   travel_time_hours: number;
   transport_mode: string;
   estimated_transit_cost: number;
+  leg_type?: 'origin_to_first_attraction' | 'attraction_to_attraction' | 'last_attraction_to_destination' | string;
+  from_type?: 'accommodation' | 'attraction' | string;
+  to_type?: 'accommodation' | 'attraction' | string;
   provenance_method?: string;
   provenance_classification?: string;
 }
@@ -130,6 +133,15 @@ export interface OptimizedDaySchedule {
   day_estimated_admission_cost: number;
   day_estimated_transit_cost: number;
   day_total_estimated_cost: number;
+  start_location_type?: 'accommodation' | 'attraction' | string;
+  start_location_name?: string;
+  end_location_type?: 'accommodation' | 'attraction' | string;
+  end_location_name?: string;
+  is_round_trip?: boolean;
+  accommodation_origin_leg?: RouteLeg;
+  accommodation_return_leg?: RouteLeg;
+  attraction_to_attraction_distance_km?: number;
+  attraction_to_attraction_duration_hours?: number;
   route_sequence: number[];
   ordered_attractions: Attraction[];
   optimization_metrics: DayOptimizationMetrics;

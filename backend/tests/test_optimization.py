@@ -5,6 +5,7 @@ MCDM priority-based pruning, and end-to-end multi-day trip scheduling.
 """
 
 import pytest
+from pydantic import ValidationError
 from fastapi import status
 from app.algorithms.route_optimizer import IntraDayRouteOptimizer
 from app.algorithms.clustering import SpatialDayClusterer
@@ -14,6 +15,7 @@ from app.schemas.clustering import ClusterDaySchema, ClusterCentroidSchema
 from app.schemas.optimization import (
     DayOptimizationRequest,
     MultiDayTripOptimizationRequest,
+    RouteEndpointSchema,
 )
 from app.utils.seed import seed_database
 
@@ -556,3 +558,416 @@ def test_end_to_end_phase5_clustering_to_phase6_optimization(client, db_session)
         assert "items" in day
         assert "legs" in day
         assert day["total_day_duration_hours"] <= 8.0  # Respects Moderate pace
+
+
+def test_accommodation_aware_day_optimization_round_trip():
+    """
+    Test Phase 3: Hotel as daily origin and destination (round trip).
+    Verifies that origin and return legs are generated with correct distance and duration.
+    """
+    optimizer = IntraDayRouteOptimizer()
+    attrs = create_sample_cluster_attractions()[:3]
+    cluster = ClusterDaySchema(
+        cluster_id=0,
+        day_number=1,
+        attraction_count=len(attrs),
+        centroid=ClusterCentroidSchema(latitude=15.33, longitude=76.46),
+        avg_distance_to_centroid_km=1.0,
+        max_distance_to_centroid_km=2.0,
+        dispersion_km=2.0,
+        attractions=attrs,
+    )
+
+    hotel = RouteEndpointSchema(
+        id="acc_hampi_boulders",
+        name="Hampi Boulders Resort",
+        latitude=15.3600,
+        longitude=76.4900,
+        endpoint_type="accommodation",
+    )
+
+    req = DayOptimizationRequest(
+        destination_id="hampi",
+        day_number=1,
+        cluster=cluster,
+        preferred_transport="auto",
+        pace="Moderate",
+        accommodation=hotel,
+        return_to_accommodation=True,
+    )
+
+    schedule, deferred = optimizer.optimize_day_schedule(req)
+    assert schedule.feasibility_status in ["FEASIBLE", "FEASIBLE_AFTER_PRUNING"]
+    assert schedule.start_location_type == "accommodation"
+    assert schedule.start_location_name == hotel.name
+    assert schedule.end_location_type == "accommodation"
+    assert schedule.end_location_name == hotel.name
+    assert schedule.is_round_trip is True
+
+    # Accommodation legs verification
+    assert schedule.accommodation_origin_leg is not None
+    assert schedule.accommodation_origin_leg.from_attraction_id == hotel.id
+    assert schedule.accommodation_origin_leg.leg_type == "origin_to_first_attraction"
+    assert schedule.accommodation_origin_leg.distance_km > 0.0
+
+    assert schedule.accommodation_return_leg is not None
+    assert schedule.accommodation_return_leg.to_attraction_id == hotel.id
+    assert schedule.accommodation_return_leg.leg_type == "last_attraction_to_destination"
+    assert schedule.accommodation_return_leg.distance_km > 0.0
+
+    # Ensure legs include origin leg + intra-attraction legs + return leg
+    assert len(schedule.legs) == len(schedule.items) + 1
+    assert schedule.total_travel_distance_km >= (
+        schedule.accommodation_origin_leg.distance_km + schedule.accommodation_return_leg.distance_km
+    )
+
+
+def test_accommodation_aware_day_optimization_open_ended():
+    """
+    Test Phase 3: Hotel as daily origin but open-ended (return_to_accommodation=False).
+    """
+    optimizer = IntraDayRouteOptimizer()
+    attrs = create_sample_cluster_attractions()[:3]
+    cluster = ClusterDaySchema(
+        cluster_id=0,
+        day_number=1,
+        attraction_count=len(attrs),
+        centroid=ClusterCentroidSchema(latitude=15.33, longitude=76.46),
+        avg_distance_to_centroid_km=1.0,
+        max_distance_to_centroid_km=2.0,
+        dispersion_km=2.0,
+        attractions=attrs,
+    )
+
+    hotel = RouteEndpointSchema(
+        id="acc_hampi_boulders",
+        name="Hampi Boulders Resort",
+        latitude=15.3600,
+        longitude=76.4900,
+        endpoint_type="accommodation",
+    )
+
+    req = DayOptimizationRequest(
+        destination_id="hampi",
+        day_number=1,
+        cluster=cluster,
+        preferred_transport="auto",
+        pace="Moderate",
+        accommodation=hotel,
+        return_to_accommodation=False,
+    )
+
+    schedule, deferred = optimizer.optimize_day_schedule(req)
+    assert schedule.start_location_type == "accommodation"
+    assert schedule.end_location_type == "attraction"
+    assert schedule.is_round_trip is False
+    assert schedule.accommodation_origin_leg is not None
+    assert schedule.accommodation_return_leg is None
+    assert len(schedule.legs) == len(schedule.items)
+
+
+def test_no_accommodation_fallback_preservation():
+    """
+    Test that when accommodation is None, behavior preserves the original
+    attraction-to-attraction open tour starting at attraction 0.
+    """
+    optimizer = IntraDayRouteOptimizer()
+    attrs = create_sample_cluster_attractions()[:3]
+    cluster = ClusterDaySchema(
+        cluster_id=0,
+        day_number=1,
+        attraction_count=len(attrs),
+        centroid=ClusterCentroidSchema(latitude=15.33, longitude=76.46),
+        avg_distance_to_centroid_km=1.0,
+        max_distance_to_centroid_km=2.0,
+        dispersion_km=2.0,
+        attractions=attrs,
+    )
+
+    req = DayOptimizationRequest(
+        destination_id="hampi",
+        day_number=1,
+        cluster=cluster,
+        preferred_transport="auto",
+        pace="Moderate",
+        accommodation=None,
+    )
+
+    schedule, deferred = optimizer.optimize_day_schedule(req)
+    assert schedule.start_location_type == "attraction"
+    assert schedule.end_location_type == "attraction"
+    assert schedule.is_round_trip is False
+    assert schedule.accommodation_origin_leg is None
+    assert schedule.accommodation_return_leg is None
+    assert len(schedule.legs) == len(schedule.items) - 1
+
+
+def test_accommodation_pace_limit_pruning():
+    """
+    Test that including long hotel travel legs respects daily pace limit and prunes
+    attractions via MCDM score when needed.
+    """
+    optimizer = IntraDayRouteOptimizer()
+    attrs = create_sample_cluster_attractions()  # 4 attractions
+    cluster = ClusterDaySchema(
+        cluster_id=0,
+        day_number=1,
+        attraction_count=len(attrs),
+        centroid=ClusterCentroidSchema(latitude=15.33, longitude=76.46),
+        avg_distance_to_centroid_km=1.0,
+        max_distance_to_centroid_km=2.0,
+        dispersion_km=2.0,
+        attractions=attrs,
+    )
+
+    # Hotel located far away (50 km away), with Relaxed pace (6.0 hour limit)
+    far_hotel = RouteEndpointSchema(
+        id="acc_far_away",
+        name="Far Resort",
+        latitude=15.0000,
+        longitude=76.0000,
+        endpoint_type="accommodation",
+    )
+
+    req = DayOptimizationRequest(
+        destination_id="hampi",
+        day_number=1,
+        cluster=cluster,
+        preferred_transport="auto",
+        pace="Relaxed",  # 6 hour limit
+        accommodation=far_hotel,
+        return_to_accommodation=True,
+    )
+
+    schedule, deferred = optimizer.optimize_day_schedule(req)
+    # Total day duration must respect the 6.0 hour pace limit
+    assert schedule.total_day_duration_hours <= 6.0
+    # At least some attractions should be pruned to satisfy the pace limit
+    assert len(deferred) > 0
+
+
+def test_accommodation_aware_api_endpoint(client, db_session):
+    """
+    Test /api/v1/optimization/route endpoint with accommodation endpoint payload.
+    """
+    seed_database(db_session)
+
+    attrs = create_sample_cluster_attractions()[:3]
+    clusters = [
+        {
+            "cluster_id": 0,
+            "day_number": 1,
+            "attraction_count": len(attrs),
+            "attractions": [a.model_dump() for a in attrs],
+            "centroid": {"latitude": 15.33, "longitude": 76.46},
+            "avg_distance_to_centroid_km": 1.0,
+            "max_distance_to_centroid_km": 2.0,
+            "dispersion_km": 2.0,
+            "is_low_utilization": False,
+        }
+    ]
+
+    payload = {
+        "destination_id": "hampi",
+        "clusters": clusters,
+        "preferred_transport": "auto",
+        "pace": "Moderate",
+        "day_start_time": "09:00",
+        "accommodation": {
+            "id": "acc_hampi_test",
+            "name": "Hampi Heritage Stay",
+            "latitude": 15.3300,
+            "longitude": 76.4600,
+            "endpoint_type": "accommodation",
+        },
+        "return_to_accommodation": True,
+    }
+
+    res = client.post("/api/v1/optimization/route", json=payload)
+    assert res.status_code == status.HTTP_200_OK
+    data = res.json()
+    assert len(data["days"]) == 1
+    day1 = data["days"][0]
+    assert day1["start_location_type"] == "accommodation"
+    assert day1["start_location_name"] == "Hampi Heritage Stay"
+    assert day1["accommodation_origin_leg"] is not None
+    assert day1["accommodation_return_leg"] is not None
+
+
+def test_route_endpoint_schema_coordinate_validation():
+    """
+    TASK 1: Verify RouteEndpointSchema rejects coordinates out of bounds:
+    - Latitude > 90 or < -90
+    - Longitude > 180 or < -180
+    """
+    # Valid coordinates should succeed
+    endpoint = RouteEndpointSchema(
+        id="acc_valid",
+        name="Valid Hotel",
+        latitude=15.33,
+        longitude=76.46,
+    )
+    assert endpoint.latitude == 15.33
+
+    # Latitude > 90
+    with pytest.raises(ValidationError) as exc_info:
+        RouteEndpointSchema(
+            id="acc_invalid_lat_high",
+            name="Invalid Hotel",
+            latitude=90.1,
+            longitude=76.46,
+        )
+    assert "latitude" in str(exc_info.value)
+
+    # Latitude < -90
+    with pytest.raises(ValidationError) as exc_info:
+        RouteEndpointSchema(
+            id="acc_invalid_lat_low",
+            name="Invalid Hotel",
+            latitude=-90.1,
+            longitude=76.46,
+        )
+    assert "latitude" in str(exc_info.value)
+
+    # Longitude > 180
+    with pytest.raises(ValidationError) as exc_info:
+        RouteEndpointSchema(
+            id="acc_invalid_lon_high",
+            name="Invalid Hotel",
+            latitude=15.33,
+            longitude=180.1,
+        )
+    assert "longitude" in str(exc_info.value)
+
+    # Longitude < -180
+    with pytest.raises(ValidationError) as exc_info:
+        RouteEndpointSchema(
+            id="acc_invalid_lon_low",
+            name="Invalid Hotel",
+            latitude=15.33,
+            longitude=-180.1,
+        )
+    assert "longitude" in str(exc_info.value)
+
+
+def test_single_attraction_accommodation_round_trip():
+    """
+    TASK 2: Verify route with one attraction and an accommodation:
+    - Exactly one attraction stop.
+    - Departs from accommodation.
+    - Returns to accommodation when return_to_accommodation=True.
+    - Has expected origin and return legs.
+    - No dummy TSP node appears as an attraction.
+    """
+    optimizer = IntraDayRouteOptimizer()
+    attrs = create_sample_cluster_attractions()[:1]  # 1 attraction: Virupaksha Temple
+    cluster = ClusterDaySchema(
+        cluster_id=0,
+        day_number=1,
+        attraction_count=1,
+        centroid=ClusterCentroidSchema(latitude=attrs[0].latitude, longitude=attrs[0].longitude),
+        avg_distance_to_centroid_km=0.0,
+        max_distance_to_centroid_km=0.0,
+        dispersion_km=0.0,
+        is_low_utilization=True,
+        attractions=attrs,
+    )
+
+    hotel = RouteEndpointSchema(
+        id="acc_hampi_boulders",
+        name="Hampi Boulders Resort",
+        latitude=15.3600,
+        longitude=76.4900,
+        endpoint_type="accommodation",
+    )
+
+    req = DayOptimizationRequest(
+        destination_id="hampi",
+        day_number=1,
+        cluster=cluster,
+        preferred_transport="auto",
+        pace="Moderate",
+        accommodation=hotel,
+        return_to_accommodation=True,
+    )
+
+    schedule, deferred = optimizer.optimize_day_schedule(req)
+
+    # 1. Exactly one attraction stop
+    assert schedule.attraction_count == 1
+    assert len(schedule.items) == 1
+    assert len(schedule.ordered_attractions) == 1
+    assert schedule.items[0].attraction.id == attrs[0].id
+
+    # 2. Starts and ends at accommodation
+    assert schedule.start_location_type == "accommodation"
+    assert schedule.start_location_name == hotel.name
+    assert schedule.end_location_type == "accommodation"
+    assert schedule.end_location_name == hotel.name
+    assert schedule.is_round_trip is True
+
+    # 3. Has origin and return legs
+    assert schedule.accommodation_origin_leg is not None
+    assert schedule.accommodation_origin_leg.from_attraction_id == hotel.id
+    assert schedule.accommodation_origin_leg.to_attraction_id == attrs[0].id
+    assert schedule.accommodation_origin_leg.distance_km > 0.0
+
+    assert schedule.accommodation_return_leg is not None
+    assert schedule.accommodation_return_leg.from_attraction_id == attrs[0].id
+    assert schedule.accommodation_return_leg.to_attraction_id == hotel.id
+    assert schedule.accommodation_return_leg.distance_km > 0.0
+
+    # 4. Total legs = 2 (hotel -> attraction, attraction -> hotel)
+    assert len(schedule.legs) == 2
+
+    # 5. No dummy TSP node in ordered attractions or items
+    for item in schedule.items:
+        assert item.attraction.id in [a.id for a in attrs]
+    for attr in schedule.ordered_attractions:
+        assert attr.id in [a.id for a in attrs]
+
+
+def test_standalone_optimization_endpoint_rejects_mismatched_accommodation(client, db_session):
+    """
+    TASK 3: Verify the standalone optimization endpoint rejects an accommodation
+    whose database destination does not match the requested destination.
+    """
+    seed_database(db_session)
+
+    attrs = create_sample_cluster_attractions()[:2]
+    clusters = [
+        {
+            "cluster_id": 0,
+            "day_number": 1,
+            "attraction_count": len(attrs),
+            "attractions": [a.model_dump() for a in attrs],
+            "centroid": {"latitude": 15.33, "longitude": 76.46},
+            "avg_distance_to_centroid_km": 1.0,
+            "max_distance_to_centroid_km": 2.0,
+            "dispersion_km": 2.0,
+            "is_low_utilization": False,
+        }
+    ]
+
+    # Destination is 'hampi', but accommodation ID is from 'coorg' (seeded in database)
+    payload = {
+        "destination_id": "hampi",
+        "clusters": clusters,
+        "preferred_transport": "auto",
+        "pace": "Moderate",
+        "day_start_time": "09:00",
+        "accommodation": {
+            "id": "coorg-heritage-resort",  # Belongs to destination 'coorg' in database
+            "name": "Heritage Resort Madikeri",
+            "latitude": 12.4590,
+            "longitude": 75.7025,
+            "endpoint_type": "accommodation",
+        },
+        "return_to_accommodation": True,
+    }
+
+    res = client.post("/api/v1/optimization/route", json=payload)
+    # Must fail with 422 Unprocessable Entity due to OptimizationConstraintException
+    assert res.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    data = res.json()
+    assert "does not match the requested destination" in str(data["detail"])

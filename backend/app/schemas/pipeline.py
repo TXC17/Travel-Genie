@@ -42,6 +42,7 @@ class GenerateItineraryRequest(BaseModel):
     travel_month: int = Field(default=11, ge=1, le=12)
     start_date: str = Field(default="2026-11-01")
     selected_accommodation_id: Optional[str] = Field(None, description="Optional selected accommodation ID to associate with generated trip")
+    return_to_accommodation: bool = Field(default=True, description="Whether daily routes should start and end at the selected accommodation")
 
     model_config = ConfigDict(from_attributes=True)
 

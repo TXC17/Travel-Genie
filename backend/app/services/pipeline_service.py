@@ -109,8 +109,28 @@ class PlanningPipelineService:
             )
         )
 
-        # 4. Stage 3: Google OR-Tools Route Optimization & Constraint Scheduling (Phase 6)
+        # 4. Stage 3: Google OR-Tools Route Optimization & Constraint Scheduling (Phase 6 & Phase 3 Accommodation-Aware)
         s3_start = time.perf_counter()
+
+        selected_acc_id = None
+        accommodation_endpoint = None
+        if getattr(request, "selected_accommodation_id", None):
+            from app.models.accommodation import Accommodation
+            acc = db.query(Accommodation).filter(
+                Accommodation.id == request.selected_accommodation_id,
+                Accommodation.is_active == True,
+            ).first()
+            if acc and acc.destination_id.lower() == request.destination_id.lower():
+                selected_acc_id = acc.id
+                from app.schemas.optimization import RouteEndpointSchema
+                accommodation_endpoint = RouteEndpointSchema(
+                    id=acc.id,
+                    name=acc.name,
+                    latitude=acc.latitude,
+                    longitude=acc.longitude,
+                    endpoint_type="accommodation",
+                )
+
         opt_req = MultiDayTripOptimizationRequest(
             destination_id=request.destination_id,
             clusters=partition_res.clusters,
@@ -120,6 +140,8 @@ class PlanningPipelineService:
             day_start_time="09:00",
             total_budget=request.total_budget,
             party_size=request.party_size,
+            accommodation=accommodation_endpoint,
+            return_to_accommodation=getattr(request, "return_to_accommodation", True),
             mcdm_scores_map=mcdm_scores_map,
         )
         optimized_itinerary = self.optimizer.optimize_multi_day_trip(opt_req)
@@ -134,6 +156,8 @@ class PlanningPipelineService:
                     "total_deferred": optimized_itinerary.total_deferred_attractions,
                     "distance_reduction_pct": optimized_itinerary.aggregate_distance_reduction_pct,
                     "total_travel_distance_km": optimized_itinerary.total_travel_distance_km,
+                    "accommodation_aware": accommodation_endpoint is not None,
+                    "accommodation_name": accommodation_endpoint.name if accommodation_endpoint else None,
                 },
             )
         )
@@ -141,16 +165,6 @@ class PlanningPipelineService:
         # 5. Stage 4: Database Persistence (Phase 7)
         s4_start = time.perf_counter()
         trip_title = f"{dest.name} {request.duration_days}-Day Trip"
-
-        selected_acc_id = None
-        if getattr(request, "selected_accommodation_id", None):
-            from app.models.accommodation import Accommodation
-            acc = db.query(Accommodation).filter(
-                Accommodation.id == request.selected_accommodation_id,
-                Accommodation.is_active == True,
-            ).first()
-            if acc and acc.destination_id.lower() == request.destination_id.lower():
-                selected_acc_id = acc.id
 
         trip = Trip(
             creator_id=user_id,
