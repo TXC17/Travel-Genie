@@ -339,3 +339,91 @@ export interface IntercityRecommendationParams {
   budget?: number;
   user_preferred_mode?: string;
 }
+
+// ==========================================
+// Phase 2: Budget-Based Accommodation Types
+// ==========================================
+
+export interface Accommodation {
+  id: string;
+  destination_id: string;
+  name: string;
+  accommodation_type: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  price_per_night: number;
+  currency: string;
+  rating: number;
+  room_capacity: number;
+  amenities: string[];
+  image_url?: string;
+  booking_url?: string;
+  contact_phone?: string;
+  is_verified: boolean;
+  provenance: Record<string, any>;
+  is_active: boolean;
+}
+
+export interface AccommodationRecommendationRequest {
+  destination_id: string;
+  check_in_date: string;
+  check_out_date: string;
+  party_size?: number;
+  total_budget?: number;
+  intercity_transport_cost?: number;
+  accommodation_budget?: number;
+  budget_tier?: string;
+  preferred_type?: string;
+  required_amenities?: string[];
+  max_price_per_night?: number;
+  min_rating?: number;
+}
+
+export interface AccommodationRecommendationItem {
+  accommodation: Accommodation;
+  nights: number;
+  rooms_needed: number;
+  price_per_night: number;
+  total_cost: number;
+  intercity_transport_cost?: number;
+  total_accounted_cost?: number;
+  budget_fit_score: number;
+  remaining_budget?: number;
+  remaining_budget_after_accommodation?: number;
+  budget_utilization_pct?: number;
+  is_within_budget: boolean;
+  match_score: number;
+  match_reasons: string[];
+  provenance_badge: 'VERIFIED' | 'ESTIMATED' | 'UNAVAILABLE' | string;
+  booking_note?: string;
+}
+
+export interface AccommodationBudgetContext {
+  total_budget?: number;
+  allocated_accommodation_budget?: number;
+  intercity_transport_cost?: number;
+  total_accounted_cost?: number;
+  remaining_budget_after_accommodation?: number;
+  included_cost_categories?: string[];
+  excluded_cost_categories?: string[];
+  is_estimate_complete?: boolean;
+  budget_tier: string;
+  nights: number;
+  party_size: number;
+  rooms_needed: number;
+  standard_double_rooms_estimate?: number;
+}
+
+export interface AccommodationRecommendationResponse {
+  destination_id: string;
+  destination_name: string;
+  check_in_date: string;
+  check_out_date: string;
+  nights: number;
+  party_size: number;
+  rooms_needed: number;
+  budget_context: AccommodationBudgetContext;
+  recommendations: AccommodationRecommendationItem[];
+  summary: string;
+}

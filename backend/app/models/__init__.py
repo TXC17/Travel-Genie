@@ -7,6 +7,7 @@ from app.database.base import Base
 from app.models.user import User
 from app.models.destination import Destination, SeasonalData
 from app.models.attraction import AttractionCategory, Attraction
+from app.models.accommodation import Accommodation
 from app.models.trip import Trip, TripPreference
 from app.models.itinerary import Itinerary, ItineraryDay, ItineraryItem
 from app.models.collaboration import TripMember, UserVote
@@ -19,6 +20,7 @@ __all__ = [
     "SeasonalData",
     "AttractionCategory",
     "Attraction",
+    "Accommodation",
     "Trip",
     "TripPreference",
     "Itinerary",

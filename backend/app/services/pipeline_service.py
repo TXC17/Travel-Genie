@@ -141,6 +141,17 @@ class PlanningPipelineService:
         # 5. Stage 4: Database Persistence (Phase 7)
         s4_start = time.perf_counter()
         trip_title = f"{dest.name} {request.duration_days}-Day Trip"
+
+        selected_acc_id = None
+        if getattr(request, "selected_accommodation_id", None):
+            from app.models.accommodation import Accommodation
+            acc = db.query(Accommodation).filter(
+                Accommodation.id == request.selected_accommodation_id,
+                Accommodation.is_active == True,
+            ).first()
+            if acc and acc.destination_id.lower() == request.destination_id.lower():
+                selected_acc_id = acc.id
+
         trip = Trip(
             creator_id=user_id,
             destination_id=request.destination_id,
@@ -150,6 +161,7 @@ class PlanningPipelineService:
             number_of_days=request.duration_days,
             party_size=request.party_size,
             total_budget=request.total_budget,
+            selected_accommodation_id=selected_acc_id,
         )
         db.add(trip)
         db.flush()

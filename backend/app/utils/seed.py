@@ -15,6 +15,7 @@ from app.core.security import get_password_hash
 from app.models.user import User
 from app.models.destination import Destination, SeasonalData
 from app.models.attraction import AttractionCategory, Attraction
+from app.models.accommodation import Accommodation
 
 
 def get_data_dir() -> Path:
@@ -42,6 +43,7 @@ def seed_database(db: Session) -> Dict[str, Any]:
         "attractions_by_destination": {},
         "total_attractions": 0,
         "users": 0,
+        "accommodations": 0,
     }
 
     # 1. Seed Demo User
@@ -165,6 +167,37 @@ def seed_database(db: Session) -> Dict[str, Any]:
                         db.add(attraction)
                         stats["attractions_by_destination"][dest_code] += 1
                         stats["total_attractions"] += 1
+
+    # 6. Seed Accommodations
+    accommodations_file = data_dir / "accommodations.json"
+    if accommodations_file.exists():
+        with open(accommodations_file, "r", encoding="utf-8") as f:
+            accommodations_data = json.load(f)
+            for acc in accommodations_data:
+                existing = db.query(Accommodation).filter(Accommodation.id == acc["id"]).first()
+                if not existing:
+                    accommodation = Accommodation(
+                        id=acc["id"],
+                        destination_id=acc["destination_id"],
+                        name=acc["name"],
+                        accommodation_type=acc["accommodation_type"],
+                        description=acc["description"],
+                        latitude=acc["latitude"],
+                        longitude=acc["longitude"],
+                        price_per_night=acc["price_per_night"],
+                        currency=acc.get("currency", "INR"),
+                        rating=acc.get("rating", 4.0),
+                        room_capacity=acc.get("room_capacity", 2),
+                        amenities=acc.get("amenities", []),
+                        image_url=acc.get("image_url"),
+                        booking_url=acc.get("booking_url"),
+                        contact_phone=acc.get("contact_phone"),
+                        is_verified=acc.get("is_verified", True),
+                        provenance=acc.get("provenance", {}),
+                        is_active=acc.get("is_active", True),
+                    )
+                    db.add(accommodation)
+                    stats["accommodations"] += 1
 
     db.commit()
     return stats

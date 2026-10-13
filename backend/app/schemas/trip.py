@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, field_validator, ConfigDict
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
 from app.schemas.destination import DestinationResponse
+from app.schemas.accommodation import AccommodationResponse
 
 
 class TripPreferenceSchema(BaseModel):
@@ -50,6 +51,7 @@ class TripCreateRequest(BaseModel):
     end_date: str = Field(..., description="Trip end date (YYYY-MM-DD)")
     party_size: int = Field(default=1, ge=1, le=50, description="Number of travelers")
     total_budget: float = Field(..., ge=500.0, description="Total budget in INR")
+    selected_accommodation_id: Optional[str] = Field(None, description="Optional selected accommodation ID")
     preferences: TripPreferenceSchema = Field(default_factory=TripPreferenceSchema)
 
     @field_validator("start_date", "end_date")
@@ -68,6 +70,7 @@ class TripUpdateRequest(BaseModel):
     total_budget: Optional[float] = Field(None, ge=500.0)
     start_date: Optional[str] = None
     end_date: Optional[str] = None
+    selected_accommodation_id: Optional[str] = Field(None, description="Optional selected accommodation ID to associate or null to remove")
     preferences: Optional[TripPreferenceSchema] = None
 
 
@@ -83,6 +86,7 @@ class TripResponse(BaseModel):
     total_budget: float
     status: str
     invite_code: str
+    selected_accommodation_id: Optional[str] = None
     preferences: Optional[TripPreferenceSchema] = None
     created_at: datetime
 
@@ -91,5 +95,6 @@ class TripResponse(BaseModel):
 
 class TripDetailResponse(TripResponse):
     destination: DestinationResponse
+    selected_accommodation: Optional[AccommodationResponse] = None
     has_itinerary: bool = False
     latest_itinerary_id: Optional[str] = None

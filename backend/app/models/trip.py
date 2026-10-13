@@ -3,7 +3,7 @@ Trip and TripPreference ORM Models.
 """
 
 import uuid
-from typing import List, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 from sqlalchemy import String, Integer, Float, Date, JSON, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base, TimestampMixin
@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from app.models.itinerary import Itinerary
     from app.models.collaboration import TripMember, UserVote
     from app.models.chat import ChatSession
+    from app.models.accommodation import Accommodation
 
 
 class Trip(Base, TimestampMixin):
@@ -40,6 +41,9 @@ class Trip(Base, TimestampMixin):
     invite_code: Mapped[str] = mapped_column(
         String(16), unique=True, index=True, default=lambda: str(uuid.uuid4())[:8].upper()
     )
+    selected_accommodation_id: Mapped[Optional[str]] = mapped_column(
+        String(60), ForeignKey("accommodations.id", ondelete="SET NULL"), nullable=True
+    )
 
     # Relationships
     creator: Mapped["User"] = relationship("User", back_populates="created_trips")
@@ -58,6 +62,9 @@ class Trip(Base, TimestampMixin):
     )
     chat_sessions: Mapped[List["ChatSession"]] = relationship(
         "ChatSession", back_populates="trip", cascade="all, delete-orphan"
+    )
+    selected_accommodation: Mapped[Optional["Accommodation"]] = relationship(
+        "Accommodation", back_populates="trips"
     )
 
 

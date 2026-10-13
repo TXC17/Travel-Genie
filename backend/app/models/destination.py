@@ -10,6 +10,7 @@ from app.database.base import Base, TimestampMixin
 if TYPE_CHECKING:
     from app.models.attraction import Attraction
     from app.models.trip import Trip
+    from app.models.accommodation import Accommodation
 
 
 class Destination(Base, TimestampMixin):
@@ -33,6 +34,9 @@ class Destination(Base, TimestampMixin):
         "SeasonalData", back_populates="destination", cascade="all, delete-orphan"
     )
     trips: Mapped[List["Trip"]] = relationship("Trip", back_populates="destination")
+    accommodations: Mapped[List["Accommodation"]] = relationship(
+        "Accommodation", back_populates="destination", cascade="all, delete-orphan"
+    )
 
 
 class SeasonalData(Base, TimestampMixin):

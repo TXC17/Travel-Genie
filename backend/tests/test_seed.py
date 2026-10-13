@@ -17,6 +17,7 @@ def test_seed_database_execution(db_session):
     assert stats["seasonal_records"] == 48
     assert stats["total_attractions"] >= 34
     assert stats["users"] >= 1
+    assert stats["accommodations"] >= 16
 
     # Verify destinations exist
     destinations = db_session.query(Destination).all()
@@ -57,3 +58,4 @@ def test_seed_idempotency(db_session):
     assert stats_second["seasonal_records"] == 0
     assert stats_second["total_attractions"] == 0
     assert stats_second["users"] == 0
+    assert stats_second["accommodations"] == 0

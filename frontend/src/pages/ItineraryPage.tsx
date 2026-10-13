@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { tripService } from '../services/tripService';
-import { MultiDayTripOptimizationResponse, GenerateItineraryResponse } from '../types';
+import {
+  MultiDayTripOptimizationResponse,
+  GenerateItineraryResponse,
+  AccommodationRecommendationItem,
+} from '../types';
 import { MapComponent } from '../components/map/MapComponent';
 import { DayScheduleCard } from '../components/itinerary/DayScheduleCard';
 import { OptimizationMetricsCard } from '../components/itinerary/OptimizationMetricsCard';
 import { DeferredAttractionsCard } from '../components/itinerary/DeferredAttractionsCard';
 import { IntercityTransportCard } from '../components/transport/IntercityTransportCard';
+import { AccommodationPicker } from '../components/accommodation/AccommodationPicker';
 import { ChatWidget } from '../components/chat/ChatWidget';
 import {
   MapPin,
@@ -29,6 +34,9 @@ export const ItineraryPage: React.FC = () => {
   const [selectedDay, setSelectedDay] = useState<number | null>(null); // null = all days
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedAccommodation, setSelectedAccommodation] = useState<AccommodationRecommendationItem | null>(
+    (location.state?.selectedAccommodation as AccommodationRecommendationItem) || null
+  );
 
   useEffect(() => {
     // Check if passed via router state
@@ -66,6 +74,25 @@ export const ItineraryPage: React.FC = () => {
           aggregate_distance_reduction_pct: latest.optimization_metrics?.distance_reduction_pct || 0,
           days: latest.days || [],
           deferred_attractions: [],
+        });
+      }
+
+      if (trip.selected_accommodation && !selectedAccommodation) {
+        const nights = trip.number_of_days ? Math.max(1, trip.number_of_days - 1) : 2;
+        const capacity = trip.selected_accommodation.room_capacity || 2;
+        const rooms = Math.ceil(trip.party_size / Math.max(1, capacity));
+        const cost = trip.selected_accommodation.price_per_night * nights * rooms;
+        setSelectedAccommodation({
+          accommodation: trip.selected_accommodation,
+          nights,
+          rooms_needed: rooms,
+          price_per_night: trip.selected_accommodation.price_per_night,
+          total_cost: cost,
+          budget_fit_score: 1.0,
+          is_within_budget: cost <= trip.total_budget,
+          match_score: 1.0,
+          match_reasons: ['Persisted trip accommodation preference'],
+          provenance_badge: trip.selected_accommodation.is_verified ? 'VERIFIED' : 'ESTIMATED',
         });
       }
     } catch (err: any) {
@@ -219,6 +246,17 @@ export const ItineraryPage: React.FC = () => {
         destinationId={itineraryData.destination_id}
         partySize={2}
         budget={itineraryData.total_estimated_cost}
+      />
+
+      {/* Curated Lodging & Accommodations Assistant */}
+      <AccommodationPicker
+        destinationId={itineraryData.destination_id}
+        partySize={2}
+        totalBudget={itineraryData.total_estimated_cost || 15000}
+        startDate={new Date().toISOString().split('T')[0]}
+        durationDays={itineraryData.total_days || 3}
+        selectedAccommodation={selectedAccommodation}
+        onSelectAccommodation={setSelectedAccommodation}
       />
 
       {/* Floating AI Chat Assistant with Real-Time Smart Replanning */}

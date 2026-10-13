@@ -41,6 +41,7 @@ class GenerateItineraryRequest(BaseModel):
     preferred_transport: str = Field(default="auto")
     travel_month: int = Field(default=11, ge=1, le=12)
     start_date: str = Field(default="2026-11-01")
+    selected_accommodation_id: Optional[str] = Field(None, description="Optional selected accommodation ID to associate with generated trip")
 
     model_config = ConfigDict(from_attributes=True)
 

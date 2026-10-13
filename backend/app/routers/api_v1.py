@@ -4,7 +4,7 @@ Aggregates all feature endpoints under /api/v1.
 """
 
 from fastapi import APIRouter
-from app.routers import health, auth, destinations, attractions, trips, recommendations, clustering, optimization, chat, transport
+from app.routers import health, auth, destinations, attractions, trips, recommendations, clustering, optimization, chat, transport, accommodations
 
 api_router = APIRouter()
 
@@ -19,6 +19,7 @@ api_router.include_router(clustering.router)
 api_router.include_router(optimization.router)
 api_router.include_router(chat.router)
 api_router.include_router(transport.router)
+api_router.include_router(accommodations.router)
 
 # Future algorithm routers:
 # - collaboration (group voting, conflict resolution)

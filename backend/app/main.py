@@ -17,8 +17,9 @@ from app.routers.api_v1 import api_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup and shutdown events."""
-    # Create tables if not exist (especially for local development/sqlite)
-    Base.metadata.create_all(bind=engine)
+    # Schema evolution is managed via Alembic migrations (e.g. alembic upgrade head).
+    # Automatic Base.metadata.create_all is omitted to prevent out-of-band
+    # table creation that bypasses Alembic revision tracking and causes migration conflicts.
     yield
     # Cleanup on shutdown if needed
 

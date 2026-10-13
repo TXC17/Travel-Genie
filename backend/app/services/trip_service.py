@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.models.trip import Trip, TripPreference
 from app.models.destination import Destination
 from app.models.collaboration import TripMember
+from app.models.accommodation import Accommodation
 from app.schemas.trip import (
     TripCreateRequest,
     TripUpdateRequest,
@@ -16,6 +17,7 @@ from app.schemas.trip import (
     TripPreferenceSchema,
 )
 from app.schemas.destination import DestinationResponse
+from app.schemas.accommodation import AccommodationResponse
 from app.core.exceptions import EntityNotFoundException, TravelGenieException
 
 
@@ -52,6 +54,22 @@ class TripService:
         # 3. Generate default title if none provided
         title = request.title or f"{num_days}-Day Trip to {dest.name}"
 
+        # 4. Validate selected accommodation if provided
+        selected_acc_id = None
+        if request.selected_accommodation_id:
+            acc = db.query(Accommodation).filter(
+                Accommodation.id == request.selected_accommodation_id,
+                Accommodation.is_active == True,
+            ).first()
+            if not acc:
+                raise EntityNotFoundException("Accommodation", request.selected_accommodation_id)
+            if acc.destination_id.lower() != request.destination_id.lower():
+                raise TravelGenieException(
+                    status_code=400,
+                    detail=f"Accommodation '{acc.name}' belongs to '{acc.destination_id}', not destination '{request.destination_id}'."
+                )
+            selected_acc_id = acc.id
+
         new_trip = Trip(
             creator_id=user_id,
             destination_id=request.destination_id,
@@ -61,6 +79,7 @@ class TripService:
             number_of_days=num_days,
             party_size=request.party_size,
             total_budget=request.total_budget,
+            selected_accommodation_id=selected_acc_id,
             status="draft",
         )
 
@@ -123,6 +142,8 @@ class TripService:
             total_budget=trip.total_budget,
             status=trip.status,
             invite_code=trip.invite_code,
+            selected_accommodation_id=trip.selected_accommodation_id,
+            selected_accommodation=AccommodationResponse.model_validate(trip.selected_accommodation) if trip.selected_accommodation else None,
             preferences=TripPreferenceSchema.model_validate(trip.preferences) if trip.preferences else None,
             destination=DestinationResponse.model_validate(trip.destination),
             has_itinerary=len(trip.itineraries) > 0,
@@ -154,6 +175,23 @@ class TripService:
             trip.start_date = request.start_date
             trip.end_date = request.end_date
             trip.number_of_days = TripService.calculate_trip_days(request.start_date, request.end_date)
+
+        if request.selected_accommodation_id is not None:
+            if request.selected_accommodation_id:
+                acc = db.query(Accommodation).filter(
+                    Accommodation.id == request.selected_accommodation_id,
+                    Accommodation.is_active == True,
+                ).first()
+                if not acc:
+                    raise EntityNotFoundException("Accommodation", request.selected_accommodation_id)
+                if acc.destination_id.lower() != trip.destination_id.lower():
+                    raise TravelGenieException(
+                        status_code=400,
+                        detail=f"Accommodation '{acc.name}' belongs to '{acc.destination_id}', not destination '{trip.destination_id}'."
+                    )
+                trip.selected_accommodation_id = acc.id
+            else:
+                trip.selected_accommodation_id = None
 
         if request.preferences:
             if not trip.preferences:

@@ -5,8 +5,9 @@ import { destinationService } from '../services/destinationService';
 import { recommendationService } from '../services/recommendationService';
 import { tripService } from '../services/tripService';
 import { IntercityTransportCard } from '../components/transport/IntercityTransportCard';
+import { AccommodationPicker } from '../components/accommodation/AccommodationPicker';
 import { AuthModal } from '../components/auth/AuthModal';
-import { Destination, ScoredAttraction } from '../types';
+import { Destination, ScoredAttraction, AccommodationRecommendationItem } from '../types';
 import {
   Compass,
   Calendar,
@@ -91,6 +92,7 @@ export const TripPlannerPage: React.FC = () => {
 
   // Preview Recommendations State
   const [recommendations, setRecommendations] = useState<ScoredAttraction[]>([]);
+  const [selectedAccommodation, setSelectedAccommodation] = useState<AccommodationRecommendationItem | null>(null);
 
   useEffect(() => {
     loadDestinations();
@@ -155,9 +157,15 @@ export const TripPlannerPage: React.FC = () => {
         preferred_transport: transport,
         travel_month: travelMonth,
         start_date: startDate,
+        selected_accommodation_id: selectedAccommodation ? selectedAccommodation.accommodation.id : undefined,
       });
 
-      navigate(`/itinerary/${response.trip_id}`, { state: { generatedData: response } });
+      navigate(`/itinerary/${response.trip_id}`, {
+        state: {
+          generatedData: response,
+          selectedAccommodation: selectedAccommodation,
+        },
+      });
     } catch (err: any) {
       if (err.response?.status === 401) {
         setError('Your session has expired. Please sign in again to generate your itinerary.');
@@ -303,7 +311,12 @@ export const TripPlannerPage: React.FC = () => {
                 return (
                   <div
                     key={dest.id}
-                    onClick={() => setSelectedDestination(dest.id)}
+                    onClick={() => {
+                      if (selectedDestination !== dest.id) {
+                        setSelectedDestination(dest.id);
+                        setSelectedAccommodation(null);
+                      }
+                    }}
                     className={`liquid-card p-5 rounded-2xl border-2 cursor-pointer relative ${
                       isSelected
                         ? 'border-emerald-600 dark:border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30 shadow-md ring-2 ring-emerald-500/20 dark:ring-emerald-500/20'
@@ -568,6 +581,19 @@ export const TripPlannerPage: React.FC = () => {
               />
             </div>
 
+            {/* Phase 2: Curated Accommodations & Lodging Budget Optimization */}
+            <div className="pt-4 border-t border-slate-100 dark:border-neutral-800">
+              <AccommodationPicker
+                destinationId={selectedDestination}
+                partySize={partySize}
+                totalBudget={budget}
+                startDate={startDate}
+                durationDays={durationDays}
+                selectedAccommodation={selectedAccommodation}
+                onSelectAccommodation={setSelectedAccommodation}
+              />
+            </div>
+
             <div className="flex justify-between pt-6 border-t border-slate-100 dark:border-neutral-800">
               <button
                 type="button"
@@ -619,6 +645,40 @@ export const TripPlannerPage: React.FC = () => {
                 <span>Generate Optimal Itinerary 🚀</span>
               </button>
             </div>
+
+            {selectedAccommodation && (
+              <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">🏨</span>
+                  <div>
+                    <span className="font-extrabold text-slate-900 dark:text-white">
+                      Selected Lodging: {selectedAccommodation.accommodation.name}
+                    </span>
+                    <p className="text-[11px] text-slate-500 dark:text-neutral-400 font-medium">
+                      {selectedAccommodation.rooms_needed} room(s) &bull; {selectedAccommodation.nights} night(s) &bull; ₹{selectedAccommodation.total_cost.toLocaleString()} lodging total (₹{selectedAccommodation.price_per_night.toLocaleString()}/night)
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span
+                    className={`font-black font-mono ${
+                      (selectedAccommodation.remaining_budget ?? budget) >= 0
+                        ? 'text-emerald-700 dark:text-emerald-400'
+                        : 'text-rose-600 dark:text-rose-400'
+                    }`}
+                  >
+                    {(selectedAccommodation.remaining_budget ?? budget) >= 0
+                      ? `₹${Math.round(selectedAccommodation.remaining_budget ?? budget).toLocaleString()} remaining`
+                      : `-₹${Math.round(Math.abs(selectedAccommodation.remaining_budget!)).toLocaleString()} over budget`}
+                  </span>
+                  <div className="text-[10px] text-slate-500 dark:text-neutral-400 font-medium">
+                    {selectedAccommodation.intercity_transport_cost
+                      ? `After lodging + intercity transit (₹${Math.round(selectedAccommodation.intercity_transport_cost).toLocaleString()})`
+                      : 'After lodging (local transit, admissions & meals excluded)'}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[460px] overflow-y-auto pr-1">
               {recommendations.map((rec) => (

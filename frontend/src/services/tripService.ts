@@ -11,6 +11,7 @@ export interface GenerateTripPayload {
   preferred_transport: string;
   travel_month: number;
   start_date: string;
+  selected_accommodation_id?: string;
 }
 
 export interface TripDetail {
@@ -25,6 +26,8 @@ export interface TripDetail {
   created_at: string;
   itineraries?: any[];
   preferences?: any;
+  selected_accommodation_id?: string;
+  selected_accommodation?: any;
 }
 
 export const tripService = {
