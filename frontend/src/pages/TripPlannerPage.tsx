@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { destinationService } from '../services/destinationService';
 import { recommendationService } from '../services/recommendationService';
 import { tripService } from '../services/tripService';
+import { IntercityTransportCard } from '../components/transport/IntercityTransportCard';
+import { AuthModal } from '../components/auth/AuthModal';
 import { Destination, ScoredAttraction } from '../types';
 import {
   Compass,
@@ -72,6 +74,7 @@ export const TripPlannerPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   // Form State
   const [selectedDestination, setSelectedDestination] = useState<string>(
@@ -133,6 +136,12 @@ export const TripPlannerPage: React.FC = () => {
   };
 
   const handleGenerateItinerary = async () => {
+    if (!isAuthenticated) {
+      setError('Please sign in or create an account to generate and save your itinerary.');
+      setAuthModalOpen(true);
+      return;
+    }
+
     try {
       setGenerating(true);
       setError(null);
@@ -150,8 +159,13 @@ export const TripPlannerPage: React.FC = () => {
 
       navigate(`/itinerary/${response.trip_id}`, { state: { generatedData: response } });
     } catch (err: any) {
-      const msg = err.response?.data?.detail || 'Failed to generate itinerary. Please try again.';
-      setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+      if (err.response?.status === 401) {
+        setError('Your session has expired. Please sign in again to generate your itinerary.');
+        setAuthModalOpen(true);
+      } else {
+        const msg = err.response?.data?.detail || 'Failed to generate itinerary. Please try again.';
+        setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+      }
     } finally {
       setGenerating(false);
     }
@@ -245,9 +259,20 @@ export const TripPlannerPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-2xl flex items-center gap-3 text-rose-700 dark:text-rose-300 text-sm shadow-sm">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <span className="font-semibold">{error}</span>
+          <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-rose-700 dark:text-rose-300 text-sm shadow-sm">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <span className="font-semibold">{error}</span>
+            </div>
+            {!isAuthenticated && (
+              <button
+                type="button"
+                onClick={() => setAuthModalOpen(true)}
+                className="liquid-btn px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl transition-colors cursor-pointer shrink-0 shadow-xs"
+              >
+                Sign In / Register
+              </button>
+            )}
           </div>
         )}
 
@@ -534,6 +559,15 @@ export const TripPlannerPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Intercity Travel-Mode Recommendations */}
+            <div className="pt-4 border-t border-slate-100 dark:border-neutral-800">
+              <IntercityTransportCard
+                destinationId={selectedDestination}
+                partySize={partySize}
+                budget={budget}
+              />
+            </div>
+
             <div className="flex justify-between pt-6 border-t border-slate-100 dark:border-neutral-800">
               <button
                 type="button"
@@ -701,6 +735,9 @@ export const TripPlannerPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Auth Modal for Unauthenticated Users */}
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </div>
   );
 };

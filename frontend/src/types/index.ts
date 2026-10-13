@@ -287,3 +287,55 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
 }
+
+export type IntercityTransportMode = 'car' | 'bike' | 'bus' | 'train' | 'flight' | 'boat';
+export type VerificationStatus = 'VERIFIED' | 'ESTIMATED' | 'UNAVAILABLE';
+export type BudgetCompatibility = 'WITHIN_BUDGET' | 'OVER_BUDGET' | 'NOT_SPECIFIED';
+
+export interface IntercityOption {
+  transport_mode: IntercityTransportMode;
+  mode_name: string;
+  origin: string;
+  destination: string;
+  is_available: boolean;
+  unavailability_reason?: string;
+  distance_km?: number;
+  distance_type: string;
+  estimated_duration_hours?: number;
+  estimated_cost_per_person?: number;
+  estimated_total_cost?: number;
+  cost_per_km?: number;
+  group_suitability_score: number;
+  group_suitability_label: string;
+  group_suitability_notes: string;
+  budget_compatibility: BudgetCompatibility;
+  score: number;
+  rank: number;
+  recommendation_reason: string;
+  advantages: string[];
+  limitations: string[];
+  verification_status: VerificationStatus;
+  data_provenance: Record<string, any>;
+}
+
+export interface IntercityRecommendationResponse {
+  origin: string;
+  destination: string;
+  destination_id?: string;
+  party_size: number;
+  budget?: number;
+  fastest_mode?: string;
+  cheapest_mode?: string;
+  best_ranked_mode?: string;
+  options: IntercityOption[];
+  available_count: number;
+  methodology_summary: string;
+}
+
+export interface IntercityRecommendationParams {
+  origin: string;
+  destination: string;
+  party_size?: number;
+  budget?: number;
+  user_preferred_mode?: string;
+}

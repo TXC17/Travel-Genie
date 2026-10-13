@@ -1,0 +1,131 @@
+{
+  "car": {
+    "speed_kmh": 65.0,
+    "per_km_rate": 14.0,
+    "base_fare": 500.0,
+    "toll_estimate_per_km": 1.5,
+    "max_passengers_per_vehicle": 4,
+    "vehicle_type": "Standard Sedan / Compact SUV",
+    "suitability": "Door-to-door comfort and luggage capacity for small groups and families",
+    "advantages": [
+      "Direct point-to-point journey without transit transfers",
+      "Flexible departure timing and custom stopovers",
+      "Comfortable with luggage and children or elderly travellers"
+    ],
+    "limitations": [
+      "Highway toll charges apply",
+      "Rider/driver fatigue on journeys over 500 km",
+      "Higher fuel/cab expenditure for solo travellers"
+    ],
+    "provenance": {
+      "source": "Karnataka/Goa Intercity Taxi & Self-Drive Tariffs Benchmark",
+      "verification_status": "VERIFIED_BENCHMARK"
+    }
+  },
+  "bike": {
+    "speed_kmh": 50.0,
+    "per_km_rate": 4.0,
+    "base_fare": 100.0,
+    "toll_estimate_per_km": 0.0,
+    "max_passengers_per_vehicle": 2,
+    "max_practical_distance_km": 350.0,
+    "suitability": "Scenic solo or couple touring for short to medium highway distances",
+    "advantages": [
+      "Very economical fuel expenditure",
+      "Toll-exempt on majority of Indian National Highway corridors",
+      "Immersive scenic riding across ghats and rural bypasses"
+    ],
+    "limitations": [
+      "Strictly limited to 1-2 travellers per motorcycle",
+      "Significant rider fatigue on journeys exceeding 300 km",
+      "Vulnerable to weather, rain, and monsoons",
+      "Minimal luggage carrying capacity"
+    ],
+    "provenance": {
+      "source": "Regional Two-Wheeler Touring Fuel & Operating Cost Norms",
+      "verification_status": "VERIFIED_BENCHMARK"
+    }
+  },
+  "bus": {
+    "speed_kmh": 45.0,
+    "per_km_per_person_rate": 1.85,
+    "base_fare_per_person": 120.0,
+    "max_passengers": 45,
+    "suitability": "Economical scheduled highway transit with widespread network coverage",
+    "advantages": [
+      "Budget-friendly ticket pricing per passenger",
+      "Extensive KSRTC / Kadamba / private sleeper coach networks",
+      "Overnight sleeper services save hotel night transit"
+    ],
+    "limitations": [
+      "Fixed departure times and predetermined pickup/drop points",
+      "Longer journey duration compared to private cab or train",
+      "Variable cabin comfort depending on bus class"
+    ],
+    "provenance": {
+      "source": "KSRTC / Kadamba Transport Corporation Intercity Tariff Matrix",
+      "verification_status": "VERIFIED_BENCHMARK"
+    }
+  },
+  "train": {
+    "speed_kmh": 55.0,
+    "per_km_per_person_rate": 1.25,
+    "base_fare_per_person": 90.0,
+    "max_passengers": 100,
+    "suitability": "High comfort and safety for long distances with sleeping berths",
+    "advantages": [
+      "Most economical and comfortable choice for medium to long distances",
+      "Sleeping berths and air-conditioned coaches available",
+      "Zero road fatigue and smooth transit unaffected by highway traffic"
+    ],
+    "limitations": [
+      "Advance booking recommended on popular tourist routes",
+      "Station-to-city transfers required (e.g. Hospet to Hampi, Madgaon to North Goa)",
+      "Subject to railway scheduling and potential track delays"
+    ],
+    "provenance": {
+      "source": "Indian Railways Standard Passenger & Express Tariff Baseline",
+      "verification_status": "VERIFIED_BENCHMARK"
+    }
+  },
+  "flight": {
+    "speed_kmh": 550.0,
+    "per_km_per_person_rate": 5.5,
+    "base_fare_per_person": 2400.0,
+    "airport_buffer_hours": 3.0,
+    "min_practical_distance_km": 250.0,
+    "suitability": "Rapid transit for long distances between metropolitan airport hubs",
+    "advantages": [
+      "Fastest journey duration across long interstate distances",
+      "High comfort and standardized cabin experience"
+    ],
+    "limitations": [
+      "Substantially higher cost per traveller; cost multiplies linearly with group size",
+      "Requires airport security, boarding, and baggage buffer (~3 hours)",
+      "Cab transfer required from airport to destination (e.g. Hubli to Dandeli, Mangalore to Coorg)"
+    ],
+    "provenance": {
+      "source": "Regional Domestic Aviation Pricing Baseline (DGCA / AAI)",
+      "verification_status": "VERIFIED_BENCHMARK"
+    }
+  },
+  "boat": {
+    "speed_kmh": 28.0,
+    "per_km_per_person_rate": 3.8,
+    "base_fare_per_person": 350.0,
+    "suitability": "Maritime or coastal passenger ferries where legitimate waterway channels operate",
+    "advantages": [
+      "Scenic coastal or maritime voyage",
+      "Avoids highway traffic along dedicated waterway corridors"
+    ],
+    "limitations": [
+      "Strictly limited to coastal and navigable river routes",
+      "Inland destinations (Hampi, Coorg, Dandeli) have no passenger waterways",
+      "Subject to seasonal suspension during southwest monsoon (June-September)"
+    ],
+    "provenance": {
+      "source": "Konkan / Coastal Ferry Operating Benchmarks",
+      "verification_status": "VERIFIED_BENCHMARK"
+    }
+  }
+}

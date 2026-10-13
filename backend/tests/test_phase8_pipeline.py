@@ -92,10 +92,11 @@ def test_pipeline_invalid_destination_error(client, auth_headers):
 
 
 def test_pipeline_unauthorized_access(client):
-    """Verify unauthenticated requests are rejected with 401."""
+    """Verify unauthenticated requests are rejected with 401 and explicit Bearer token error message."""
     payload = {
         "destination_id": "hampi",
         "duration_days": 2,
     }
     res = client.post("/api/v1/trips/generate-itinerary", json=payload)
     assert res.status_code == status.HTTP_401_UNAUTHORIZED
+    assert res.json()["detail"] == "Not authenticated. Bearer token required."

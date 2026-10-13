@@ -6,6 +6,7 @@ import { MapComponent } from '../components/map/MapComponent';
 import { DayScheduleCard } from '../components/itinerary/DayScheduleCard';
 import { OptimizationMetricsCard } from '../components/itinerary/OptimizationMetricsCard';
 import { DeferredAttractionsCard } from '../components/itinerary/DeferredAttractionsCard';
+import { IntercityTransportCard } from '../components/transport/IntercityTransportCard';
 import { ChatWidget } from '../components/chat/ChatWidget';
 import {
   MapPin,
@@ -212,6 +213,13 @@ export const ItineraryPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Intercity Transit Options Assistant */}
+      <IntercityTransportCard
+        destinationId={itineraryData.destination_id}
+        partySize={2}
+        budget={itineraryData.total_estimated_cost}
+      />
 
       {/* Floating AI Chat Assistant with Real-Time Smart Replanning */}
       <ChatWidget onItineraryUpdated={handleItineraryUpdated} />
