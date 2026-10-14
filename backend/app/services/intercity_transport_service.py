@@ -46,8 +46,8 @@ class IntercityTransportService:
         "hyderabad": (17.3850, 78.4867, "Hyderabad"),
         "chennai": (13.0827, 80.2707, "Chennai"),
         "madras": (13.0827, 80.2707, "Chennai"),
-        "panaji": (15.4909, 73.8278, "Panaji"),
-        "goa": (15.2993, 74.1240, "Goa"),
+        "panaji": (15.4989, 73.8278, "Panaji"),
+        "goa": (15.4989, 73.8278, "Goa"),
         "dharwad": (15.4589, 75.0078, "Dharwad"),
         "shivamogga": (13.9299, 75.5681, "Shivamogga"),
         "shimoga": (13.9299, 75.5681, "Shivamogga"),
@@ -59,14 +59,14 @@ class IntercityTransportService:
 
     DESTINATION_ALIASES: Dict[str, Tuple[str, float, float, str]] = {
         "hampi": ("hampi", 15.3350, 76.4600, "Hampi"),
-        "coorg": ("coorg", 12.3375, 75.8069, "Coorg (Madikeri)"),
-        "kodagu": ("coorg", 12.3375, 75.8069, "Coorg (Madikeri)"),
-        "madikeri": ("coorg", 12.3375, 75.8069, "Coorg (Madikeri)"),
+        "coorg": ("coorg", 12.4244, 75.7382, "Coorg (Madikeri)"),
+        "kodagu": ("coorg", 12.4244, 75.7382, "Coorg (Madikeri)"),
+        "madikeri": ("coorg", 12.4244, 75.7382, "Coorg (Madikeri)"),
         "dandeli": ("dandeli", 15.2361, 74.6173, "Dandeli"),
-        "goa": ("goa", 15.2993, 74.1240, "Goa"),
-        "north goa": ("goa", 15.2993, 74.1240, "Goa"),
-        "south goa": ("goa", 15.2993, 74.1240, "Goa"),
-        "panaji": ("goa", 15.2993, 74.1240, "Goa"),
+        "goa": ("goa", 15.4989, 73.8278, "Goa"),
+        "north goa": ("goa", 15.4989, 73.8278, "Goa"),
+        "south goa": ("goa", 15.4989, 73.8278, "Goa"),
+        "panaji": ("goa", 15.4989, 73.8278, "Goa"),
     }
 
     def __init__(self, data_dir: Optional[str] = None):

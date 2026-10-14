@@ -31,6 +31,7 @@ from app.schemas.optimization import (
     MultiDayTripOptimizationRequest,
     MultiDayTripOptimizationResponse,
 )
+from app.services.pipeline_service import PlanningPipelineService
 from app.core.exceptions import EntityNotFoundException, AuthorizationException
 
 
@@ -40,6 +41,7 @@ class ChatService:
         self.recommender = MCDMRecommender()
         self.clusterer = SpatialDayClusterer()
         self.optimizer = IntraDayRouteOptimizer()
+        self.pipeline_service = PlanningPipelineService()
 
     def create_session(
         self, db: Session, user_id: str, request: ChatSessionCreateRequest
@@ -101,7 +103,8 @@ class ChatService:
         session: ChatSession,
     ) -> str:
         """
-        Persist the generated itinerary hierarchy into the database.
+        Persist the generated itinerary hierarchy into the database and synchronize
+        parent Trip and TripPreference records during conversational replanning.
         """
         # 1. Find or create trip
         trip = None
@@ -111,10 +114,11 @@ class ChatService:
         dest = db.query(Destination).filter(Destination.id == constraints.destination_id).first()
         dest_name = dest.name if dest else (constraints.destination_name or (constraints.destination_id or "Trip").title())
 
+        duration_val = constraints.duration_days or (trip.number_of_days if trip else 3)
+        start_date_val = constraints.start_date or (trip.start_date if trip else "2026-11-01")
+        end_date_val = PlanningPipelineService.calculate_persisted_end_date(start_date_val, duration_val)
+
         if not trip:
-            start_date_val = constraints.start_date or "2026-11-01"
-            duration_val = constraints.duration_days or 3
-            end_date_val = (date.fromisoformat(start_date_val) + timedelta(days=max(0, duration_val - 1))).isoformat()
             trip = Trip(
                 creator_id=user_id,
                 destination_id=constraints.destination_id or "hampi",
@@ -132,7 +136,7 @@ class ChatService:
             pref = TripPreference(
                 trip_id=trip.id,
                 interests=constraints.interests or ["heritage"],
-                pace=constraints.pace or "Moderate",
+                pace=(constraints.pace.capitalize() if constraints.pace else "Moderate"),
                 preferred_transport=constraints.preferred_transport or "auto",
                 budget_tier=constraints.budget_tier or "standard",
             )
@@ -140,75 +144,67 @@ class ChatService:
             db.flush()
 
             session.trip_id = trip.id
+        else:
+            # Synchronize existing Trip record
+            trip.number_of_days = duration_val
+            trip.start_date = start_date_val
+            trip.end_date = end_date_val
+            if constraints.total_budget is not None:
+                trip.total_budget = constraints.total_budget
+            if constraints.party_size is not None:
+                trip.party_size = constraints.party_size
+            if constraints.destination_id is not None and constraints.destination_id != trip.destination_id:
+                trip.destination_id = constraints.destination_id
 
-        # Update session title if it is default
-        if session.title in ["New Travel Plan", "Trip Planning Chat", "Trip Planning", ""]:
-            session.title = f"{dest_name} {constraints.duration_days or 3}-Day Trip"
-        db.add(session)
+            # Synchronize title if standard title format or duration/destination changed
+            trip.title = f"{dest_name} {duration_val}-Day Trip"
 
-        # 2. Mark previous itineraries as non-current
-        db.query(Itinerary).filter(Itinerary.trip_id == trip.id).update({"is_current": False})
+            # Synchronize TripPreference
+            pref = db.query(TripPreference).filter(TripPreference.trip_id == trip.id).first()
+            if not pref:
+                pref = TripPreference(
+                    trip_id=trip.id,
+                    interests=constraints.interests or ["heritage"],
+                    pace=(constraints.pace.capitalize() if constraints.pace else "Moderate"),
+                    preferred_transport=constraints.preferred_transport or "auto",
+                    budget_tier=constraints.budget_tier or "standard",
+                )
+                db.add(pref)
+                db.flush()
+            else:
+                if constraints.pace is not None:
+                    p_val = constraints.pace.capitalize() if isinstance(constraints.pace, str) else constraints.pace
+                    if p_val in ["Relaxed", "Moderate", "Intense"]:
+                        pref.pace = p_val
+                if constraints.preferred_transport is not None:
+                    pref.preferred_transport = constraints.preferred_transport
+                if constraints.interests is not None and len(constraints.interests) > 0:
+                    pref.interests = constraints.interests
+                if constraints.budget_tier is not None:
+                    pref.budget_tier = constraints.budget_tier
+                if constraints.max_daily_travel_hours is not None:
+                    pref.max_daily_travel_hours = constraints.max_daily_travel_hours
+                if hasattr(pref, "dietary_preference") and hasattr(constraints, "dietary_preference"):
+                    d_val = getattr(constraints, "dietary_preference", None)
+                    if d_val is not None:
+                        setattr(pref, "dietary_preference", d_val)
+                db.add(pref)
+                db.flush()
 
-        # Calculate version
-        latest_itinerary = (
-            db.query(Itinerary)
-            .filter(Itinerary.trip_id == trip.id)
-            .order_by(Itinerary.version.desc())
-            .first()
-        )
-        version = (latest_itinerary.version + 1) if latest_itinerary else 1
-
-        # 3. Create Itinerary
-        db_itinerary = Itinerary(
-            trip_id=trip.id,
-            version=version,
-            is_current=True,
-            total_estimated_cost=itinerary_data.total_estimated_cost,
-            total_travel_distance_km=itinerary_data.total_travel_distance_km,
-            total_travel_duration_hours=itinerary_data.total_travel_duration_hours,
-            total_sightseeing_duration_hours=itinerary_data.total_sightseeing_duration_hours,
-            optimization_metrics={
-                "distance_reduction_pct": itinerary_data.aggregate_distance_reduction_pct,
-                "total_scheduled_attractions": itinerary_data.total_scheduled_attractions,
-                "total_deferred_attractions": itinerary_data.total_deferred_attractions,
-            },
-        )
-        db.add(db_itinerary)
-        db.flush()
-
-        # 4. Create Days and Items
-        for day in itinerary_data.days:
-            db_day = ItineraryDay(
-                itinerary_id=db_itinerary.id,
-                day_number=day.day_number,
-                date=day.date or f"Day {day.day_number}",
-                cluster_id=day.cluster_id,
-                day_travel_distance_km=day.total_travel_distance_km,
-                day_travel_duration_hours=day.total_travel_duration_hours,
-                day_sightseeing_duration_hours=day.total_sightseeing_duration_hours,
-                day_estimated_cost=day.day_total_estimated_cost,
-                recommended_transport=day.recommended_transport,
-            )
-            db.add(db_day)
+            db.add(trip)
             db.flush()
 
-            for item in day.items:
-                db_item = ItineraryItem(
-                    itinerary_day_id=db_day.id,
-                    attraction_id=item.attraction.id,
-                    visit_order=item.visit_order,
-                    arrival_time=item.arrival_time,
-                    departure_time=item.departure_time,
-                    visit_duration_hours=item.visit_duration_hours,
-                    travel_time_from_prev_hours=item.travel_time_from_prev_hours,
-                    distance_from_prev_km=item.distance_from_prev_km,
-                    item_cost=item.item_admission_fee,
-                    crowd_estimate_score=item.crowd_estimate_score,
-                    crowd_level=item.crowd_level,
-                    visit_notes=item.visit_notes,
-                )
-                db.add(db_item)
+        # Update session title if default
+        if session.title in ["New Travel Plan", "Trip Planning Chat", "Trip Planning", ""] or (session.title and "Day Trip" in session.title):
+            session.title = f"{dest_name} {duration_val}-Day Trip"
+        db.add(session)
 
+        # 2. Delegate itinerary persistence to canonical PlanningPipelineService
+        db_itinerary = self.pipeline_service.persist_itinerary(
+            db=db,
+            trip_id=trip.id,
+            itinerary_data=itinerary_data,
+        )
         db.commit()
         return db_itinerary.id
 
@@ -438,59 +434,35 @@ class ChatService:
                 clarification_question=clarification_text,
             )
 
-        # 5. Deterministic Pipeline Execution
+        # 5. Deterministic Pipeline Execution via Canonical PlanningPipelineService
         dest_id = current_constraints.destination_id or "hampi"
         duration_k = current_constraints.duration_days or 3
         transport = current_constraints.preferred_transport or "auto"
         pace = current_constraints.pace or "Moderate"
         budget = current_constraints.total_budget or 15000.0
         party_size = current_constraints.party_size or 1
+        start_date = current_constraints.start_date or "2026-11-01"
 
-        # A. Phase 4: Fetch Candidate Attractions & MCDM Ranking
-        all_attractions = db.query(Attraction).filter(Attraction.destination_id == dest_id).all()
-        if not all_attractions:
-            raise EntityNotFoundException("Attractions for destination", dest_id)
+        # Check if an existing trip in this session has selected an accommodation
+        existing_trip = None
+        if session.trip_id:
+            existing_trip = db.query(Trip).filter(Trip.id == session.trip_id).first()
+        selected_acc_id = existing_trip.selected_accommodation_id if existing_trip else None
 
-        from app.schemas.recommendation import RecommendationRequest
-        rec_req = RecommendationRequest(
+        optimized_itinerary, _ = self.pipeline_service.optimize_itinerary_plan(
+            db=db,
             destination_id=dest_id,
+            duration_days=duration_k,
+            start_date=start_date,
             travel_month=current_constraints.travel_month or 11,
             interests=current_constraints.interests or ["heritage"],
             total_budget=budget,
-            number_of_days=duration_k,
             party_size=party_size,
-        )
-
-        scored_candidates = self.recommender.rank_attractions(
-            attractions=all_attractions,
-            request=rec_req,
-        )
-
-        max_candidates = min(len(all_attractions), duration_k * 4)
-        scored_subset = scored_candidates[:max_candidates]
-        candidate_attr_entities = [sc.attraction for sc in scored_subset]
-        mcdm_scores_map = {sc.attraction.id: sc.composite_score for sc in scored_subset}
-
-        # B. Phase 5: Spatial K-Means Day Partitioning
-        partition_res = self.clusterer.partition_days(
-            destination_id=dest_id,
-            attractions=candidate_attr_entities,
-            requested_k=duration_k,
-        )
-
-        # C. Phase 6: OR-Tools Route Optimization & Constraint Scheduling
-        opt_req = MultiDayTripOptimizationRequest(
-            destination_id=dest_id,
-            clusters=partition_res.clusters,
-            start_date=current_constraints.start_date or "2026-11-01",
             preferred_transport=transport,
             pace=pace,
-            day_start_time="09:00",
-            total_budget=budget,
-            party_size=party_size,
-            mcdm_scores_map=mcdm_scores_map,
+            selected_accommodation_id=selected_acc_id,
+            return_to_accommodation=True,
         )
-        optimized_itinerary = self.optimizer.optimize_multi_day_trip(opt_req)
 
         # 6. Smart Replanning Diff
         replanning_diff = None

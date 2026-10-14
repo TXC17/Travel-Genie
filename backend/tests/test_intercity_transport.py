@@ -222,3 +222,35 @@ def test_intercity_api_endpoints(client):
     # Test validation error on empty origin
     inv_res3 = client.get("/api/v1/transport/intercity-recommendations?origin=%20&destination=coorg")
     assert inv_res3.status_code in [status.HTTP_400_BAD_REQUEST, status.HTTP_422_UNPROCESSABLE_ENTITY]
+
+
+def test_canonical_destination_coordinates_alignment():
+    """
+    AUDIT-10: Verify intercity transport service uses canonical reference coordinates
+    for Goa (15.4989, 73.8278) and Coorg (12.4244, 75.7382) established in AUDIT-06.
+    """
+    service = IntercityTransportService()
+
+    # Verify DESTINATION_ALIASES
+    coorg_alias = service.DESTINATION_ALIASES["coorg"]
+    assert coorg_alias[1] == pytest.approx(12.4244, abs=1e-4)
+    assert coorg_alias[2] == pytest.approx(75.7382, abs=1e-4)
+
+    goa_alias = service.DESTINATION_ALIASES["goa"]
+    assert goa_alias[1] == pytest.approx(15.4989, abs=1e-4)
+    assert goa_alias[2] == pytest.approx(73.8278, abs=1e-4)
+
+    # Verify KNOWN_ORIGIN_HUBS
+    assert service.KNOWN_ORIGIN_HUBS["goa"][0] == pytest.approx(15.4989, abs=1e-4)
+    assert service.KNOWN_ORIGIN_HUBS["goa"][1] == pytest.approx(73.8278, abs=1e-4)
+    assert service.KNOWN_ORIGIN_HUBS["panaji"][0] == pytest.approx(15.4989, abs=1e-4)
+    assert service.KNOWN_ORIGIN_HUBS["panaji"][1] == pytest.approx(73.8278, abs=1e-4)
+
+    # Verify resolve_destination returns canonical coordinates
+    _, _, coorg_lat, coorg_lon = service.resolve_destination("Coorg")
+    assert coorg_lat == pytest.approx(12.4244, abs=1e-4)
+    assert coorg_lon == pytest.approx(75.7382, abs=1e-4)
+
+    _, _, goa_lat, goa_lon = service.resolve_destination("Goa")
+    assert goa_lat == pytest.approx(15.4989, abs=1e-4)
+    assert goa_lon == pytest.approx(73.8278, abs=1e-4)

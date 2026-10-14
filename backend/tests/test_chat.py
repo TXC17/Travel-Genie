@@ -382,3 +382,172 @@ def test_rename_and_delete_chat_session(client, auth_headers):
     assert get_res.status_code == status.HTTP_404_NOT_FOUND
 
 
+def test_smart_replanning_trip_metadata_synchronization(client, auth_headers, db_session):
+    """
+    AUDIT-10: Verify conversational replanning synchronizes parent Trip record metadata
+    (number_of_days, end_date, total_budget, title) and creates a new Itinerary version.
+    """
+    from datetime import date, timedelta
+    from app.models.trip import Trip
+    from app.models.chat import ChatSession
+    from app.models.itinerary import Itinerary
+
+    # 1. Create Session
+    session_res = client.post(
+        "/api/v1/chat/sessions",
+        json={"title": "Replanning Sync Test"},
+        headers=auth_headers,
+    )
+    assert session_res.status_code == status.HTTP_201_CREATED
+    session_id = session_res.json()["id"]
+
+    # 2. Turn 1: 3-day Hampi trip
+    turn1_res = client.post(
+        f"/api/v1/chat/sessions/{session_id}/messages",
+        json={"content": "Plan a 3-day Hampi trip for 2 people with ₹15,000 budget."},
+        headers=auth_headers,
+    )
+    assert turn1_res.status_code == status.HTTP_200_OK
+    turn1_data = turn1_res.json()
+    assert turn1_data["itinerary"]["total_days"] == 3
+
+    # Verify initial Trip record in DB
+    chat_sess = db_session.query(ChatSession).filter(ChatSession.id == session_id).first()
+    assert chat_sess.trip_id is not None
+    trip = db_session.query(Trip).filter(Trip.id == chat_sess.trip_id).first()
+    assert trip.number_of_days == 3
+    assert trip.total_budget == 15000.0
+    start_d = date.fromisoformat(trip.start_date)
+    expected_end_t1 = (start_d + timedelta(days=2)).isoformat()
+    assert trip.end_date == expected_end_t1
+
+    # Check API returns 3 days
+    trip_api_res1 = client.get(f"/api/v1/trips/{trip.id}", headers=auth_headers)
+    assert trip_api_res1.status_code == status.HTTP_200_OK
+    assert trip_api_res1.json()["number_of_days"] == 3
+
+    # 3. Turn 2: Replanning request to 2 days and 12,000 budget
+    turn2_res = client.post(
+        f"/api/v1/chat/sessions/{session_id}/messages",
+        json={"content": "Change it to 2 days with a 12000 budget."},
+        headers=auth_headers,
+    )
+    assert turn2_res.status_code == status.HTTP_200_OK
+    turn2_data = turn2_res.json()
+    assert turn2_data["itinerary"]["total_days"] == 2
+
+    # Verify synchronized Trip record in DB
+    db_session.refresh(trip)
+    assert trip.number_of_days == 2
+    assert trip.total_budget == 12000.0
+    expected_end_t2 = (start_d + timedelta(days=1)).isoformat()
+    assert trip.end_date == expected_end_t2
+
+    # Verify Trip record via GET endpoint
+    trip_api_res2 = client.get(f"/api/v1/trips/{trip.id}", headers=auth_headers)
+    assert trip_api_res2.status_code == status.HTTP_200_OK
+    trip_api_data2 = trip_api_res2.json()
+    assert trip_api_data2["number_of_days"] == 2
+    assert trip_api_data2["total_budget"] == 12000.0
+    assert trip_api_data2["end_date"] == expected_end_t2
+
+    # Verify Itineraries in DB (version 1 inactive, version 2 active)
+    itins = db_session.query(Itinerary).filter(Itinerary.trip_id == trip.id).order_by(Itinerary.version.asc()).all()
+    assert len(itins) == 2
+    assert itins[0].version == 1
+    assert itins[0].is_current is False
+    assert itins[1].version == 2
+    assert itins[1].is_current is True
+
+
+def test_smart_replanning_preference_synchronization(client, auth_headers, db_session):
+    """
+    AUDIT-10: Verify conversational replanning updates TripPreference fields (pace, preferred_transport)
+    without erasing unspecified preference values.
+    """
+    from app.models.trip import Trip, TripPreference
+    from app.models.chat import ChatSession
+
+    # 1. Create Session
+    session_res = client.post(
+        "/api/v1/chat/sessions",
+        json={"title": "Preference Sync Test"},
+        headers=auth_headers,
+    )
+    session_id = session_res.json()["id"]
+
+    # 2. Turn 1: Relaxed pace, walking transit, heritage interests
+    turn1_res = client.post(
+        f"/api/v1/chat/sessions/{session_id}/messages",
+        json={"content": "Plan a 2-day Hampi trip with walking at a relaxed pace. I like heritage."},
+        headers=auth_headers,
+    )
+    assert turn1_res.status_code == status.HTTP_200_OK
+
+    chat_sess = db_session.query(ChatSession).filter(ChatSession.id == session_id).first()
+    trip = db_session.query(Trip).filter(Trip.id == chat_sess.trip_id).first()
+    pref = db_session.query(TripPreference).filter(TripPreference.trip_id == trip.id).first()
+    assert pref.pace == "Relaxed"
+    assert pref.preferred_transport == "walking"
+    assert "heritage" in pref.interests
+
+    # 3. Turn 2: Switch to Intense pace and auto transit (interests not specified)
+    turn2_res = client.post(
+        f"/api/v1/chat/sessions/{session_id}/messages",
+        json={"content": "Switch to an intense pace and auto transit."},
+        headers=auth_headers,
+    )
+    assert turn2_res.status_code == status.HTTP_200_OK
+
+    db_session.refresh(pref)
+    assert pref.pace == "Intense"
+    assert pref.preferred_transport == "auto"
+    # Verify unspecified field preserved
+    assert "heritage" in pref.interests
+
+
+def test_chat_pipeline_parity_and_leisure_day_continuity(client, auth_headers, db_session):
+    """
+    AUDIT-10: Verify chat replanning invokes canonical pipeline and allocates structured
+    leisure days (LEISURE_DAY) when requested duration exceeds available sightseeing clusters.
+    """
+    # 1. Create Session
+    session_res = client.post(
+        "/api/v1/chat/sessions",
+        json={"title": "Chat Leisure Parity Test"},
+        headers=auth_headers,
+    )
+    session_id = session_res.json()["id"]
+
+    # 2. Request 12 days in Dandeli (which has 10 attractions, allocating 2 leisure days)
+    turn1_res = client.post(
+        f"/api/v1/chat/sessions/{session_id}/messages",
+        json={"content": "Plan a 12-day Dandeli trip for 2 people with a ₹30,000 budget."},
+        headers=auth_headers,
+    )
+    assert turn1_res.status_code == status.HTTP_200_OK
+    data = turn1_res.json()
+    itinerary = data["itinerary"]
+
+    # Total days must equal requested duration (12)
+    assert itinerary["total_days"] == 12
+    assert len(itinerary["days"]) == 12
+
+    sightseeing_days = [d for d in itinerary["days"] if d["feasibility_status"] != "LEISURE_DAY"]
+    leisure_days = [d for d in itinerary["days"] if d["feasibility_status"] == "LEISURE_DAY"]
+
+    assert len(sightseeing_days) > 0
+    assert len(leisure_days) > 0
+    assert len(sightseeing_days) + len(leisure_days) == 12
+
+    for ld in leisure_days:
+        assert ld["attraction_count"] == 0
+        assert ld["day_total_estimated_cost"] == 0.0
+        assert ld["total_travel_distance_km"] == 0.0
+        assert ld["cluster_id"] == -1
+        assert ld["feasibility_status"] == "LEISURE_DAY"
+
+    # Explanation must reference Leisure
+    assert "Leisure" in data["content"] or "Free Exploration" in data["content"]
+
+
