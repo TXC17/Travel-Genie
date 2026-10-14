@@ -216,3 +216,74 @@ def test_pipeline_rejects_invalid_start_date(client, auth_headers):
     }
     res = client.post("/api/v1/trips/generate-itinerary", json=payload, headers=auth_headers)
     assert res.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+def test_pipeline_duration_exceeding_attractions_allocates_leisure_days(client, auth_headers, db_session):
+    """
+    AUDIT-09: Verify that when requested duration exceeds available sightseeing day clusters,
+    the pipeline explicitly allocates structured leisure/rest days (LEISURE_DAY) to complete
+    the requested trip duration, rather than treating them as failed days or returning a truncated itinerary.
+    """
+    payload = {
+        "destination_id": "dandeli",
+        "duration_days": 12,
+        "total_budget": 25000.0,
+        "party_size": 2,
+        "interests": ["adventure"],
+        "pace": "Relaxed",
+        "preferred_transport": "auto",
+        "travel_month": 11,
+        "start_date": "2026-11-01",
+    }
+
+    res = client.post("/api/v1/trips/generate-itinerary", json=payload, headers=auth_headers)
+    assert res.status_code == status.HTTP_201_CREATED
+    data = res.json()
+
+    trip_id = data["trip_id"]
+    itinerary_id = data["itinerary_id"]
+    itinerary = data["itinerary"]
+
+    # 1. Itinerary total_days must match requested duration (12 days)
+    assert itinerary["total_days"] == 12
+    assert len(itinerary["days"]) == 12
+
+    # 2. Partition between sightseeing days and leisure days
+    sightseeing_days = [d for d in itinerary["days"] if d["feasibility_status"] != "LEISURE_DAY"]
+    leisure_days = [d for d in itinerary["days"] if d["feasibility_status"] == "LEISURE_DAY"]
+
+    assert len(sightseeing_days) > 0, "Expected at least one sightseeing day"
+    assert len(leisure_days) > 0, "Expected at least one leisure day allocated for duration excess"
+    assert len(sightseeing_days) + len(leisure_days) == 12
+
+    # 3. Verify leisure day structure
+    for ld in leisure_days:
+        assert ld["attraction_count"] == 0
+        assert ld["day_total_estimated_cost"] == 0.0
+        assert ld["total_travel_distance_km"] == 0.0
+        assert ld["cluster_id"] == -1
+        assert len(ld["items"]) == 0
+        assert ld["feasibility_status"] == "LEISURE_DAY"
+        assert ld["optimization_metrics"]["solver_status"] == "LEISURE_DAY"
+
+    # 4. Verify Trip Persistence via API
+    trip_res = client.get(f"/api/v1/trips/{trip_id}", headers=auth_headers)
+    assert trip_res.status_code == status.HTTP_200_OK
+    trip_data = trip_res.json()
+
+    assert trip_data["number_of_days"] == 12
+    assert trip_data["start_date"] == "2026-11-01"
+    assert trip_data["end_date"] == "2026-11-12"
+    assert trip_data["has_itinerary"] is True
+    assert trip_data["latest_itinerary_id"] == itinerary_id
+
+    # 5. Verify Database Persistence of All 12 Itinerary Days
+    from app.models.itinerary import ItineraryDay
+    persisted_days = db_session.query(ItineraryDay).filter(ItineraryDay.itinerary_id == itinerary_id).order_by(ItineraryDay.day_number).all()
+    assert len(persisted_days) == 12
+
+    db_leisure_days = [d for d in persisted_days if d.cluster_id == -1]
+    assert len(db_leisure_days) == len(leisure_days)
+    for d in db_leisure_days:
+        assert d.day_travel_distance_km == 0.0
+        assert d.day_estimated_cost == 0.0

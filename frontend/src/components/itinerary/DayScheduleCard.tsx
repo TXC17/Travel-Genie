@@ -10,6 +10,8 @@ import {
   AlertTriangle,
   ArrowDown,
   Hotel,
+  Coffee,
+  Compass,
 } from 'lucide-react';
 
 interface DayScheduleCardProps {
@@ -17,22 +19,39 @@ interface DayScheduleCardProps {
 }
 
 export const DayScheduleCard: React.FC<DayScheduleCardProps> = ({ day }) => {
+  const isLeisure = day.feasibility_status === 'LEISURE_DAY';
+  const isInfeasible = day.feasibility_status === 'INFEASIBLE_ALL_PRUNED';
+
   return (
     <div className="liquid-glass rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-neutral-800">
       {/* Day Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-neutral-800">
         <div className="flex items-center gap-3">
-          <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-extrabold text-base shadow-md shadow-emerald-600/20">
+          <span
+            className={`flex items-center justify-center w-10 h-10 rounded-xl text-white font-extrabold text-base shadow-md ${
+              isLeisure
+                ? 'bg-sky-600 dark:bg-sky-500 shadow-sky-600/20 dark:text-black'
+                : isInfeasible
+                ? 'bg-rose-600 dark:bg-rose-500 shadow-rose-600/20'
+                : 'bg-emerald-600 dark:bg-emerald-500 shadow-emerald-600/20 dark:text-black'
+            }`}
+          >
             {day.day_number}
           </span>
           <div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-              Day {day.day_number} Sightseeing
+              {isLeisure ? `Day ${day.day_number} Leisure & Free Exploration` : `Day ${day.day_number} Sightseeing`}
             </h3>
             <p className="text-xs text-slate-500 dark:text-neutral-400 flex items-center gap-2">
-              <span>{day.day_start_time} - {day.day_end_time}</span>
-              <span>&bull;</span>
-              <span className="capitalize text-emerald-700 dark:text-emerald-400 font-medium">{day.recommended_transport} Transport</span>
+              {isLeisure ? (
+                <span>Self-paced day &bull; Flexible exploration</span>
+              ) : (
+                <>
+                  <span>{day.day_start_time} - {day.day_end_time}</span>
+                  <span>&bull;</span>
+                  <span className="capitalize text-emerald-700 dark:text-emerald-400 font-medium">{day.recommended_transport} Transport</span>
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -45,12 +64,26 @@ export const DayScheduleCard: React.FC<DayScheduleCardProps> = ({ day }) => {
               <span>Base: {day.start_location_name}</span>
             </span>
           )}
-          <span className="liquid-btn px-3 py-1 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded-full flex items-center gap-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            {day.feasibility_status === 'FEASIBLE' ? '100% Feasible' : 'Feasible (Pruned)'}
-          </span>
+
+          {isLeisure ? (
+            <span className="liquid-btn px-3 py-1 bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/80 text-sky-700 dark:text-sky-300 text-xs font-semibold rounded-full flex items-center gap-1.5">
+              <Coffee className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+              <span>Leisure & Rest Day</span>
+            </span>
+          ) : isInfeasible ? (
+            <span className="liquid-btn px-3 py-1 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/80 text-rose-700 dark:text-rose-300 text-xs font-semibold rounded-full flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+              <span>Schedule Infeasible</span>
+            </span>
+          ) : (
+            <span className="liquid-btn px-3 py-1 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded-full flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>{day.feasibility_status === 'FEASIBLE' ? '100% Feasible' : 'Feasible (Pruned)'}</span>
+            </span>
+          )}
+
           <span className="liquid-btn px-3 py-1 bg-slate-100 dark:bg-neutral-900 text-slate-700 dark:text-neutral-300 text-xs font-semibold rounded-full border border-transparent dark:border-neutral-800">
-            {day.attraction_count} Stops
+            {isLeisure ? 'Self-Paced' : `${day.attraction_count} Stops`}
           </span>
           <span
             className="liquid-btn px-3 py-1 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/80 text-amber-700 dark:text-amber-300 text-xs font-semibold rounded-full"
@@ -76,18 +109,54 @@ export const DayScheduleCard: React.FC<DayScheduleCardProps> = ({ day }) => {
         </div>
         <div className="liquid-btn bg-slate-50 dark:bg-neutral-900/70 p-2.5 rounded-xl border border-slate-100 dark:border-neutral-800">
           <span className="text-slate-400 dark:text-neutral-500 block mb-0.5">Sightseeing</span>
-          <span className="font-bold text-slate-800 dark:text-neutral-100">{day.total_sightseeing_duration_hours} hrs</span>
+          <span className="font-bold text-slate-800 dark:text-neutral-100">
+            {isLeisure ? 'Self-paced' : `${day.total_sightseeing_duration_hours} hrs`}
+          </span>
         </div>
         <div className="liquid-btn bg-slate-50 dark:bg-neutral-900/70 p-2.5 rounded-xl border border-slate-100 dark:border-neutral-800">
           <span className="text-slate-400 dark:text-neutral-500 block mb-0.5">Optimization</span>
           <span className="font-bold text-emerald-600 dark:text-emerald-400">
-            -{day.optimization_metrics.distance_reduction_pct}% km
+            {isLeisure ? 'Flexible' : `-${day.optimization_metrics.distance_reduction_pct}% km`}
           </span>
         </div>
       </div>
 
       {/* Timeline Waypoints */}
       <div className="mt-6 space-y-4">
+        {/* Leisure Day Message */}
+        {isLeisure && (
+          <div className="p-6 rounded-2xl bg-sky-50/50 dark:bg-sky-950/20 border border-sky-200/70 dark:border-sky-900/50 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+            <div className="w-12 h-12 rounded-2xl bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-300 flex items-center justify-center shrink-0">
+              <Compass className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-slate-800 dark:text-neutral-200">
+                Free Exploration & Leisure Day
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-neutral-400">
+                No scheduled sightseeing stops. Take this day to unwind, stroll through local markets, enjoy neighborhood cafes, or revisit your favorite highlights at your own leisurely pace.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Infeasible Pruned Message */}
+        {isInfeasible && day.items.length === 0 && (
+          <div className="p-6 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/50 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-slate-800 dark:text-neutral-200">
+                No Scheduled Stops for this Day
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-neutral-400">
+                Candidate attractions for this day could not be scheduled within daily pace or hours limits. Adjust your pace or total budget to include them.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Accommodation Departure Banner */}
         {day.accommodation_origin_leg && (
           <div className="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 flex items-center justify-between gap-3 text-xs">

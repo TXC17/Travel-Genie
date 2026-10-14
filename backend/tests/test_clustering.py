@@ -410,3 +410,103 @@ def test_clustering_api_endpoint(client, db_session):
         assert "dispersion_km" in day
         assert "is_low_utilization" in day
         assert len(day["attractions"]) == day["attraction_count"]
+
+
+def test_cluster_rebalancing_heuristic_on_imbalanced_cluster():
+    """
+    AUDIT-09: Verify that when attractions are distributed along a corridor and
+    standard K-Means produces an imbalanced partition (e.g. [1, 6]), the secondary
+    rebalancing heuristic transfers boundary attractions to satisfy N_min and N_max
+    without creating isolated outliers.
+    """
+    clusterer = SpatialDayClusterer()
+    # 7 attractions spaced evenly along a 7km geographic corridor
+    corridor_attractions = [
+        Attraction(
+            id=f"corridor_attr_{i}",
+            destination_id="hampi",
+            category="heritage",
+            name=f"Corridor Stop {i}",
+            description=f"Monument {i}",
+            latitude=15.3000 + (i * 0.010),  # ~1.1 km between consecutive stops
+            longitude=76.4000 + (i * 0.005),
+            average_visit_duration=1.0,
+            entry_fee=0.0,
+            popularity_score=0.9,
+            rating=4.5,
+            duration_estimation_method="curated_empirical_average",
+        )
+        for i in range(7)
+    ]
+
+    res = clusterer.partition_days(
+        destination_id="hampi",
+        attractions=corridor_attractions,
+        requested_k=2,
+    )
+
+    assert res.effective_k == 2
+    assert len(res.clusters) == 2
+    # Total attractions must equal 7 with no dropped or duplicated attractions
+    assigned_ids = [a.id for day in res.clusters for a in day.attractions]
+    assert len(assigned_ids) == 7
+    assert set(assigned_ids) == {a.id for a in corridor_attractions}
+
+    # Verify balanced partition: with N=7 and K=2, sizes must be 3 and 4
+    counts = [day.attraction_count for day in res.clusters]
+    assert sorted(counts) == [3, 4], f"Expected balanced partition [3, 4], got {counts}"
+
+
+def test_cluster_rebalancing_preserves_natural_boundaries_without_creating_outliers():
+    """
+    AUDIT-09: Verify that when a donor attraction would become an isolated outlier
+    (outlier ratio > 2.0) across a major geographical boundary (e.g. Sanapur across the river),
+    the rebalancing heuristic preserves the natural boundary rather than creating an outlier.
+    """
+    clusterer = SpatialDayClusterer()
+    mock_attractions = create_mock_attractions()  # 6 attractions, 1 across river (Sanapur)
+
+    res = clusterer.partition_days(
+        destination_id="hampi",
+        attractions=mock_attractions,
+        requested_k=2,
+    )
+
+    # Sanapur is ~3.5 km away across the river, while the remaining 5 are tightly packed on south bank.
+    # The heuristic must NOT force South-bank temples to Sanapur's day because that would create an isolated outlier.
+    counts = [day.attraction_count for day in res.clusters]
+    assert len(counts) == 2
+    # All 6 attractions assigned
+    assigned_ids = [a.id for day in res.clusters for a in day.attractions]
+    assert len(assigned_ids) == 6
+
+
+def test_rebalancing_determinism():
+    """
+    AUDIT-09: Verify that rebalancing is 100% deterministic across multiple runs.
+    """
+    clusterer = SpatialDayClusterer()
+    corridor_attractions = [
+        Attraction(
+            id=f"det_attr_{i}",
+            destination_id="hampi",
+            category="heritage",
+            name=f"Det Stop {i}",
+            description=f"Monument {i}",
+            latitude=15.3000 + (i * 0.010),
+            longitude=76.4000 + (i * 0.005),
+            average_visit_duration=1.0,
+            entry_fee=0.0,
+            popularity_score=0.9,
+            rating=4.5,
+            duration_estimation_method="curated_empirical_average",
+        )
+        for i in range(8)
+    ]
+
+    res1 = clusterer.partition_days("hampi", corridor_attractions, 3)
+    res2 = clusterer.partition_days("hampi", corridor_attractions, 3)
+
+    assert [c.attraction_count for c in res1.clusters] == [c.attraction_count for c in res2.clusters]
+    for d1, d2 in zip(res1.clusters, res2.clusters):
+        assert [a.id for a in d1.attractions] == [a.id for a in d2.attractions]

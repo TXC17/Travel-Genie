@@ -124,7 +124,7 @@ export interface OptimizedDaySchedule {
   date?: string;
   cluster_id: number;
   attraction_count: number;
-  feasibility_status: 'FEASIBLE' | 'FEASIBLE_AFTER_PRUNING' | 'INFEASIBLE_ALL_PRUNED';
+  feasibility_status: 'FEASIBLE' | 'FEASIBLE_AFTER_PRUNING' | 'INFEASIBLE_ALL_PRUNED' | 'LEISURE_DAY';
   recommended_transport: string;
   day_start_time: string;
   day_end_time: string;

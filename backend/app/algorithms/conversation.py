@@ -338,6 +338,13 @@ class ConversationalEngine:
         # Summary of days
         for day in itinerary.days:
             lines.append(f"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            if getattr(day, "feasibility_status", None) == "LEISURE_DAY":
+                lines.append(f"🗓️ **DAY {day.day_number} — Leisure & Free Exploration** 🌴")
+                if day.start_location_type == "accommodation" and day.start_location_name:
+                    lines.append(f"🏨 **Base**: {day.start_location_name}")
+                lines.append("🛋️ *No scheduled sightseeing stops. Free day for relaxation, local shopping, cafes, or spontaneous exploration.*")
+                continue
+
             lines.append(f"🗓️ **DAY {day.day_number}** ({day.day_start_time} - {day.day_end_time})")
             if day.start_location_type == "accommodation" and day.start_location_name:
                 hotel_info = f"🏨 **Base**: {day.start_location_name}"

@@ -19,7 +19,11 @@ from app.algorithms.clustering import SpatialDayClusterer
 from app.algorithms.route_optimizer import IntraDayRouteOptimizer
 from app.algorithms.conversation import ConversationalEngine
 from app.schemas.recommendation import RecommendationRequest
-from app.schemas.optimization import MultiDayTripOptimizationRequest
+from app.schemas.optimization import (
+    MultiDayTripOptimizationRequest,
+    OptimizedDayScheduleSchema,
+    DayOptimizationMetricsSchema,
+)
 from app.schemas.chat import ExtractedTripConstraintsSchema
 from app.schemas.pipeline import (
     GenerateItineraryRequest,
@@ -157,6 +161,70 @@ class PlanningPipelineService:
             mcdm_scores_map=mcdm_scores_map,
         )
         optimized_itinerary = self.optimizer.optimize_multi_day_trip(opt_req)
+
+        # AUDIT-09: Explicitly allocate leisure/rest days when requested duration exceeds effective sightseeing clusters
+        # Preserves traveler's requested trip duration without treating extra days as failed or pruned schedules.
+        current_scheduled_days = len(optimized_itinerary.days)
+        leisure_days_added = 0
+        if current_scheduled_days < request.duration_days:
+            start_d = date.fromisoformat(str(request.start_date)) if isinstance(request.start_date, str) else request.start_date
+            has_acc = accommodation_endpoint is not None
+            for leisure_day_num in range(current_scheduled_days + 1, request.duration_days + 1):
+                day_offset = leisure_day_num - 1
+                leisure_date = (start_d + timedelta(days=day_offset)).isoformat()
+                leisure_metrics = DayOptimizationMetricsSchema(
+                    original_route_distance_km=0.0,
+                    optimized_route_distance_km=0.0,
+                    distance_reduction_km=0.0,
+                    distance_reduction_pct=0.0,
+                    original_travel_time_hours=0.0,
+                    optimized_travel_time_hours=0.0,
+                    travel_time_reduction_hours=0.0,
+                    solver_status="LEISURE_DAY",
+                )
+                leisure_schedule = OptimizedDayScheduleSchema(
+                    day_number=leisure_day_num,
+                    date=leisure_date,
+                    cluster_id=-1,
+                    attraction_count=0,
+                    feasibility_status="LEISURE_DAY",
+                    recommended_transport="leisure",
+                    day_start_time="10:00",
+                    day_end_time="18:00",
+                    total_sightseeing_duration_hours=0.0,
+                    total_travel_duration_hours=0.0,
+                    total_waiting_duration_hours=0.0,
+                    total_day_duration_hours=0.0,
+                    total_travel_distance_km=0.0,
+                    day_estimated_admission_cost=0.0,
+                    day_estimated_transit_cost=0.0,
+                    day_total_estimated_cost=0.0,
+                    start_location_type="accommodation" if has_acc else "destination",
+                    start_location_name=accommodation_endpoint.name if has_acc else None,
+                    end_location_type="accommodation" if has_acc else "destination",
+                    end_location_name=accommodation_endpoint.name if has_acc else None,
+                    is_round_trip=False,
+                    accommodation_origin_leg=None,
+                    accommodation_return_leg=None,
+                    attraction_to_attraction_distance_km=0.0,
+                    attraction_to_attraction_duration_hours=0.0,
+                    route_sequence=[],
+                    ordered_attractions=[],
+                    optimization_metrics=leisure_metrics,
+                    items=[],
+                    legs=[],
+                    constraint_violations=[],
+                    provenance_metadata={
+                        "day_type": "leisure_day",
+                        "description": "Free exploration and leisure day at traveler's own pace.",
+                        "provenance_classification": "user_schedule_allocation",
+                    },
+                )
+                optimized_itinerary.days.append(leisure_schedule)
+                leisure_days_added += 1
+
+            optimized_itinerary.total_days = request.duration_days
+
         s3_duration = (time.perf_counter() - s3_start) * 1000
         stages.append(
             PipelineStageTelemetrySchema(
@@ -170,6 +238,7 @@ class PlanningPipelineService:
                     "total_travel_distance_km": optimized_itinerary.total_travel_distance_km,
                     "accommodation_aware": accommodation_endpoint is not None,
                     "accommodation_name": accommodation_endpoint.name if accommodation_endpoint else None,
+                    "leisure_days_allocated": leisure_days_added,
                 },
             )
         )

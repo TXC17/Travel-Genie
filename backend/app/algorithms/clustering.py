@@ -134,6 +134,107 @@ class SpatialDayClusterer:
 
         return valid, excluded
 
+    def _rebalance_clusters(
+        self,
+        cluster_groups: Dict[int, List[Attraction]],
+        centroids_metric: np.ndarray,
+        origin_lat: float,
+        origin_lon: float,
+        max_outlier_ratio: float = 2.0,
+    ) -> Tuple[Dict[int, List[Attraction]], np.ndarray]:
+        """
+        Secondary deterministic rebalancing heuristic per ARCHITECTURE.md Section 2.2.
+        Ensures each day cluster contains between N_min and N_max attractions
+        without creating isolated outliers or breaking co-located sites.
+        """
+        n_total = sum(len(members) for members in cluster_groups.values())
+        k = len(cluster_groups)
+        if k <= 1 or n_total <= k:
+            return cluster_groups, centroids_metric
+
+        # Target bounds: N_min = floor(N / K), N_max = ceil(N / K) + (1 if N > 2*K else 0)
+        avg_per_cluster = n_total / k
+        n_min = max(1, math.floor(avg_per_cluster))
+        n_max = max(n_min, math.ceil(avg_per_cluster) + (1 if n_total > 2 * k else 0))
+
+        # Iteratively transfer boundary attractions from overloaded clusters to underloaded clusters
+        max_transfers = n_total
+        for _ in range(max_transfers):
+            sizes = {c_idx: len(members) for c_idx, members in cluster_groups.items()}
+            overloaded = [c_idx for c_idx, count in sizes.items() if count > n_max]
+            underloaded = [c_idx for c_idx, count in sizes.items() if count < n_min]
+
+            # If no cluster is strictly overloaded or underloaded, we are balanced
+            if not overloaded or not underloaded:
+                empty_clusters = [c_idx for c_idx, count in sizes.items() if count == 0]
+                if empty_clusters:
+                    underloaded = empty_clusters
+                    overloaded = [c_idx for c_idx, count in sizes.items() if count >= 2]
+                else:
+                    break
+
+            best_move = None
+            best_cost_delta = None
+
+            # Sort donor and receiver indices deterministically
+            for donor_idx in sorted(overloaded):
+                donor_members = cluster_groups[donor_idx]
+                d_x, d_y = centroids_metric[donor_idx]
+                d_lat, d_lon = self.inverse_project(d_x, d_y, origin_lat, origin_lon)
+
+                for receiver_idx in sorted(underloaded):
+                    r_x, r_y = centroids_metric[receiver_idx]
+                    r_lat, r_lon = self.inverse_project(r_x, r_y, origin_lat, origin_lon)
+
+                    # Sort candidate donor attractions deterministically by id
+                    for attr in sorted(donor_members, key=lambda a: str(a.id)):
+                        dist_to_donor = self.haversine_distance_km(attr.latitude, attr.longitude, d_lat, d_lon)
+                        dist_to_receiver = self.haversine_distance_km(attr.latitude, attr.longitude, r_lat, r_lon)
+
+                        effective_donor_dist = max(dist_to_donor, 0.05)
+                        outlier_ratio = dist_to_receiver / effective_donor_dist
+
+                        # Guardrail 1: Outlier ratio
+                        # Do not move if candidate would become an isolated outlier in receiver relative to donor
+                        if outlier_ratio > max_outlier_ratio:
+                            continue
+
+                        # Guardrail 2: Colocation protection
+                        # If attraction has a very close sibling in donor (< 350m), do not separate it if target is > 1.0 km
+                        has_tight_sibling = any(
+                            other.id != attr.id and self.haversine_distance_km(
+                                attr.latitude, attr.longitude, other.latitude, other.longitude
+                            ) < 0.35
+                            for other in donor_members
+                        )
+                        if has_tight_sibling and dist_to_receiver > 1.0:
+                            continue
+
+                        cost_delta = dist_to_receiver - dist_to_donor
+                        candidate_key = (round(cost_delta, 6), str(attr.id))
+
+                        if best_cost_delta is None or candidate_key < best_cost_delta:
+                            best_cost_delta = candidate_key
+                            best_move = (donor_idx, receiver_idx, attr)
+
+            if best_move is None:
+                # No outlier-safe transfer possible; preserve natural geographic boundaries
+                break
+
+            donor_idx, receiver_idx, moved_attr = best_move
+            cluster_groups[donor_idx] = [a for a in cluster_groups[donor_idx] if a.id != moved_attr.id]
+            cluster_groups[receiver_idx].append(moved_attr)
+
+            # Update centroids for donor and receiver in metric Tangent Plane
+            for c_idx in (donor_idx, receiver_idx):
+                members = cluster_groups[c_idx]
+                if members:
+                    member_coords = [(m.latitude, m.longitude) for m in members]
+                    proj = self.project_to_local_metric(member_coords, origin_lat, origin_lon)
+                    centroids_metric[c_idx] = proj.mean(axis=0)
+
+        return cluster_groups, centroids_metric
+
     def partition_days(
         self,
         destination_id: str,
@@ -208,6 +309,23 @@ class SpatialDayClusterer:
         cluster_groups: Dict[int, List[Attraction]] = {i: [] for i in range(effective_k)}
         for idx, cluster_idx in enumerate(labels):
             cluster_groups[cluster_idx].append(valid_attractions[idx])
+
+        # 5b. Secondary Rebalancing Heuristic (Docs ARCHITECTURE.md Section 2.2)
+        if 1 < effective_k < n_valid:
+            cluster_groups, centroids_metric = self._rebalance_clusters(
+                cluster_groups=cluster_groups,
+                centroids_metric=centroids_metric,
+                origin_lat=origin_lat,
+                origin_lon=origin_lon,
+            )
+            # Recompute total inertia after rebalancing
+            total_inertia = 0.0
+            for c_idx, members in cluster_groups.items():
+                if members:
+                    c_x, c_y = centroids_metric[c_idx]
+                    member_coords = [(m.latitude, m.longitude) for m in members]
+                    proj = self.project_to_local_metric(member_coords, origin_lat, origin_lon)
+                    total_inertia += float(np.sum((proj - np.array([c_x, c_y])) ** 2))
 
         # Sort clusters by geographic latitude (North to South) for natural day flow
         cluster_order = sorted(
