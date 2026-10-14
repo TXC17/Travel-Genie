@@ -52,8 +52,11 @@ export const DayScheduleCard: React.FC<DayScheduleCardProps> = ({ day }) => {
           <span className="liquid-btn px-3 py-1 bg-slate-100 dark:bg-neutral-900 text-slate-700 dark:text-neutral-300 text-xs font-semibold rounded-full border border-transparent dark:border-neutral-800">
             {day.attraction_count} Stops
           </span>
-          <span className="liquid-btn px-3 py-1 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/80 text-amber-700 dark:text-amber-300 text-xs font-semibold rounded-full">
-            Est. Cost: ₹{day.day_total_estimated_cost}
+          <span
+            className="liquid-btn px-3 py-1 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/80 text-amber-700 dark:text-amber-300 text-xs font-semibold rounded-full"
+            title={`Estimated day sightseeing & local transit cost (includes attraction admission fees of ₹${day.day_estimated_admission_cost} and local transit of ₹${day.day_estimated_transit_cost})`}
+          >
+            Day Sightseeing & Transit: ₹{day.day_total_estimated_cost}
           </span>
         </div>
       </div>
@@ -167,7 +170,16 @@ export const DayScheduleCard: React.FC<DayScheduleCardProps> = ({ day }) => {
                       ({item.visit_duration_hours}h)
                     </span>
 
-                    <span className="flex items-center gap-1">
+                    <span
+                      className="flex items-center gap-1"
+                      title={
+                        item.admission_fee_status === 'unknown'
+                          ? 'Admission fee unverified / not officially published'
+                          : item.item_admission_fee && item.item_admission_fee > 0
+                          ? 'Included in estimated sightseeing cost'
+                          : 'Free admission; included in estimated sightseeing cost'
+                      }
+                    >
                       <DollarSign className="w-3.5 h-3.5 text-slate-400 dark:text-neutral-500" />
                       {item.admission_fee_status === 'unknown' || item.item_admission_fee === null || item.item_admission_fee === undefined ? (
                         <span className="text-amber-600 dark:text-amber-400 font-medium">Fee Unverified</span>
@@ -182,10 +194,11 @@ export const DayScheduleCard: React.FC<DayScheduleCardProps> = ({ day }) => {
                           {item.is_fee_verified && (
                             <span className="ml-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold" title="Verified Fee">✓</span>
                           )}
+                          <span className="ml-1 text-[10px] text-slate-400 dark:text-neutral-500">(in sightseeing cost)</span>
                         </span>
                       ) : (
                         <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                          Free Entry
+                          Entry: Free
                           {item.is_fee_verified && (
                             <span className="ml-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold" title="Verified Free Entry">✓</span>
                           )}

@@ -374,7 +374,19 @@ class AccommodationService:
 
         # Calculate intra-day attraction distance across all days (fixed baseline)
         total_intra_attraction_km = 0.0
+        activity_centroid: Optional[Dict[str, float]] = None
+        acc_dist_to_center_map: Dict[str, Optional[float]] = {}
+
         if is_itinerary_aware:
+            all_attr_coords = [attr for day in day_waypoints for attr in day]
+            if all_attr_coords:
+                c_lat = sum(a["latitude"] for a in all_attr_coords) / len(all_attr_coords)
+                c_lon = sum(a["longitude"] for a in all_attr_coords) / len(all_attr_coords)
+                activity_centroid = {
+                    "latitude": round(c_lat, 6),
+                    "longitude": round(c_lon, 6),
+                }
+
             for day_coords in day_waypoints:
                 for k in range(len(day_coords) - 1):
                     total_intra_attraction_km += cls.calculate_estimated_road_distance(
@@ -384,11 +396,23 @@ class AccommodationService:
                         day_coords[k + 1]["longitude"],
                     )
 
-        # Precompute hotel transit for all candidates to compute relative ranking
+        # Precompute hotel transit and activity centroid distance for all candidates to compute relative ranking
         acc_transit_map: Dict[str, float] = {}
         if is_itinerary_aware:
             for acc in candidates:
                 if acc.latitude is not None and acc.longitude is not None:
+                    # Centroid road distance (itinerary activity center)
+                    if activity_centroid:
+                        d_centroid = cls.calculate_estimated_road_distance(
+                            acc.latitude,
+                            acc.longitude,
+                            activity_centroid["latitude"],
+                            activity_centroid["longitude"],
+                        )
+                        acc_dist_to_center_map[acc.id] = round(d_centroid, 1)
+                    else:
+                        acc_dist_to_center_map[acc.id] = None
+
                     hotel_transit = 0.0
                     for day_coords in day_waypoints:
                         first_attr = day_coords[0]
@@ -403,6 +427,7 @@ class AccommodationService:
                     acc_transit_map[acc.id] = round(hotel_transit, 2)
                 else:
                     acc_transit_map[acc.id] = 999.0
+                    acc_dist_to_center_map[acc.id] = None
 
             valid_transits = [v for v in acc_transit_map.values() if v < 900.0]
             min_hotel_transit = min(valid_transits) if valid_transits else 0.0
@@ -470,6 +495,7 @@ class AccommodationService:
             ):
                 total_transit_km = acc_transit_map[acc.id]
                 avg_daily_transit_km = round(total_transit_km / max(1, len(day_waypoints)), 1)
+                dist_to_activity_center = acc_dist_to_center_map.get(acc.id)
                 total_trip_km = round(total_intra_attraction_km + total_transit_km, 1)
                 savings_km = round(max(0.0, max_hotel_transit - total_transit_km), 1)
 
@@ -480,11 +506,27 @@ class AccommodationService:
                     else 1.0
                 )
                 abs_score = 1.0 / (1.0 + (avg_daily_transit_km / 25.0))
-                location_score = round(
-                    min(1.0, max(0.05, 0.60 * rel_score + 0.40 * abs_score)), 3
-                )
+                if dist_to_activity_center is not None:
+                    centroid_score = 1.0 / (1.0 + (dist_to_activity_center / 20.0))
+                    location_score = round(
+                        min(1.0, max(0.05, 0.50 * rel_score + 0.30 * abs_score + 0.20 * centroid_score)), 3
+                    )
+                else:
+                    location_score = round(
+                        min(1.0, max(0.05, 0.60 * rel_score + 0.40 * abs_score)), 3
+                    )
 
-                if avg_daily_transit_km <= 15.0:
+                if dist_to_activity_center is not None and dist_to_activity_center <= 8.0:
+                    loc_explanation = (
+                        f"Central to your planned activities: ~{dist_to_activity_center} km from itinerary activity center, "
+                        f"estimated ~{avg_daily_transit_km} km/day round-trip transit (saves ~{savings_km} km total vs outlying options)."
+                    )
+                elif dist_to_activity_center is not None:
+                    loc_explanation = (
+                        f"~{dist_to_activity_center} km from your itinerary activity center: estimated ~{avg_daily_transit_km} km/day "
+                        f"round-trip transit across planned itinerary days."
+                    )
+                elif avg_daily_transit_km <= 15.0:
                     loc_explanation = (
                         f"Centrally located for this itinerary: estimated ~{avg_daily_transit_km} km/day round-trip transit "
                         f"to daily waypoints (saves ~{savings_km} km total vs outlying options)."
@@ -502,6 +544,7 @@ class AccommodationService:
             elif is_itinerary_aware:
                 total_transit_km = None
                 avg_daily_transit_km = None
+                dist_to_activity_center = None
                 total_trip_km = None
                 savings_km = None
                 location_score = 0.5
@@ -509,6 +552,7 @@ class AccommodationService:
             else:
                 total_transit_km = None
                 avg_daily_transit_km = None
+                dist_to_activity_center = None
                 total_trip_km = None
                 savings_km = None
                 location_score = None
@@ -685,6 +729,7 @@ class AccommodationService:
                     is_estimate_complete=False,
                     booking_note=booking_note,
                     location_suitability_score=location_score,
+                    estimated_distance_to_activity_center_km=dist_to_activity_center,
                     estimated_total_hotel_transit_km=total_transit_km,
                     estimated_daily_hotel_transit_km=avg_daily_transit_km,
                     estimated_trip_travel_distance_km=total_trip_km,
@@ -764,6 +809,7 @@ class AccommodationService:
             summary=summary,
             is_itinerary_aware=is_itinerary_aware,
             total_itinerary_days_evaluated=len(day_waypoints) if is_itinerary_aware else None,
+            activity_center_coordinates=activity_centroid,
             category_filter=norm_cat,
             category_data_status=category_data_status,
         )

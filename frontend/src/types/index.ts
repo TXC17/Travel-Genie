@@ -420,6 +420,7 @@ export interface AccommodationRecommendationItem {
   provenance_badge: 'VERIFIED' | 'ESTIMATED' | 'UNAVAILABLE' | string;
   booking_note?: string;
   location_suitability_score?: number;
+  estimated_distance_to_activity_center_km?: number;
   estimated_total_hotel_transit_km?: number;
   estimated_daily_hotel_transit_km?: number;
   estimated_trip_travel_distance_km?: number;
@@ -459,6 +460,7 @@ export interface AccommodationRecommendationResponse {
   summary: string;
   is_itinerary_aware?: boolean;
   total_itinerary_days_evaluated?: number;
+  activity_center_coordinates?: { latitude: number; longitude: number };
   category_filter?: string;
   category_data_status?: string | null;
 }

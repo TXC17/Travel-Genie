@@ -117,11 +117,13 @@ export const AccommodationCard: React.FC<AccommodationCardProps> = ({
             {item.location_suitability_score !== undefined && item.location_suitability_score !== null && (
               <span
                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-blue-50 dark:bg-blue-950/70 text-blue-900 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
-                title="Estimated transit distance via Haversine × 1.30 road winding factor"
+                title="Geographically evaluated against planned itinerary activity coordinates (Haversine × 1.30 detour factor)"
               >
                 <MapPin className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                 <span>
-                  {item.estimated_daily_hotel_transit_km !== undefined
+                  {item.estimated_distance_to_activity_center_km !== undefined && item.estimated_distance_to_activity_center_km !== null
+                    ? `~${item.estimated_distance_to_activity_center_km} km from activity center`
+                    : item.estimated_daily_hotel_transit_km !== undefined
                     ? `~${item.estimated_daily_hotel_transit_km} km/day transit`
                     : 'Location-Optimized'}
                 </span>
@@ -246,9 +248,12 @@ export const AccommodationCard: React.FC<AccommodationCardProps> = ({
 
             {item.estimated_total_hotel_transit_km !== undefined && (
               <div className="p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-900/50 text-[11px] text-blue-900 dark:text-blue-300">
-                <span className="font-bold">Estimated Itinerary Transit: </span>
+                <span className="font-bold">Itinerary Activity Proximity: </span>
                 <span>
-                  ~{item.estimated_total_hotel_transit_km} km total hotel transit across trip days (~{item.estimated_daily_hotel_transit_km} km/day avg). Road distances are estimates computed using Haversine × 1.30 winding factor.
+                  {item.estimated_distance_to_activity_center_km !== undefined
+                    ? `~${item.estimated_distance_to_activity_center_km} km from your planned itinerary activity center. `
+                    : ''}
+                  Estimated ~{item.estimated_total_hotel_transit_km} km total hotel transit across trip days (~{item.estimated_daily_hotel_transit_km} km/day avg). Road distances are estimates computed using Haversine × 1.30 road winding factor.
                 </span>
               </div>
             )}

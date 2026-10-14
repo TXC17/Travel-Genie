@@ -132,6 +132,7 @@ class AccommodationRecommendationItem(BaseModel):
     is_estimate_complete: bool = False
     booking_note: Optional[str] = Field(None, description="Booking or rate notice")
     location_suitability_score: Optional[float] = Field(None, ge=0.0, le=1.0, description="Spatial centralness score across all itinerary days")
+    estimated_distance_to_activity_center_km: Optional[float] = Field(None, ge=0.0, description="Estimated road distance from accommodation to itinerary activity centroid in km")
     estimated_total_hotel_transit_km: Optional[float] = Field(None, ge=0.0, description="Total estimated travel between accommodation and daily tour waypoints across all days")
     estimated_daily_hotel_transit_km: Optional[float] = Field(None, ge=0.0, description="Average estimated daily transit distance to/from accommodation")
     estimated_trip_travel_distance_km: Optional[float] = Field(None, ge=0.0, description="Estimated total trip travel distance (sightseeing + hotel transit)")
@@ -170,5 +171,6 @@ class AccommodationRecommendationResponse(BaseModel):
     summary: str
     is_itinerary_aware: bool = Field(default=False, description="True if recommendations were spatially evaluated against an itinerary")
     total_itinerary_days_evaluated: Optional[int] = Field(None, description="Number of itinerary days evaluated for location suitability")
+    activity_center_coordinates: Optional[Dict[str, float]] = Field(None, description="Centroid coordinates of planned itinerary activities (latitude, longitude)")
     category_filter: str = Field(default="all", description="Current category filter applied")
     category_data_status: Optional[str] = Field(None, description="Explanation of dataset depth or missing properties for category")

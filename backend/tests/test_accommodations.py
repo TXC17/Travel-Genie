@@ -792,3 +792,45 @@ def test_accommodation_category_switching_preserves_capacity_and_itinerary_suita
         assert r.rooms_needed * r.accommodation.room_capacity >= 4
         assert r.total_cost == 3 * r.price_per_night * r.rooms_needed
         assert r.estimated_daily_hotel_transit_km is not None
+
+
+def test_itinerary_activity_centroid_and_centrality_calculation(db_session):
+    """Verify that the geographic centroid of scheduled attractions is computed and each recommendation discloses distance to activity center."""
+    days = [
+        {
+            "day_number": 1,
+            "items": [
+                {"visit_order": 1, "attraction": {"name": "Madikeri Fort", "latitude": 12.4244, "longitude": 75.7382}},
+                {"visit_order": 2, "attraction": {"name": "Raja Seat", "latitude": 12.4137, "longitude": 75.7360}},
+            ],
+        },
+        {
+            "day_number": 2,
+            "items": [
+                {"visit_order": 1, "attraction": {"name": "Abbey Falls", "latitude": 12.4550, "longitude": 75.7170}},
+            ],
+        },
+    ]
+    req = AccommodationRecommendationRequest(
+        destination_id="coorg",
+        check_in_date="2026-11-01",
+        check_out_date="2026-11-03",
+        party_size=2,
+        total_budget=20000.0,
+        itinerary_days=days,
+    )
+    res = AccommodationService.get_recommendations(db_session, req)
+    assert res.is_itinerary_aware is True
+    assert res.activity_center_coordinates is not None
+
+    expected_lat = round((12.4244 + 12.4137 + 12.4550) / 3, 6)
+    expected_lon = round((75.7382 + 75.7360 + 75.7170) / 3, 6)
+    assert abs(res.activity_center_coordinates["latitude"] - expected_lat) < 1e-4
+    assert abs(res.activity_center_coordinates["longitude"] - expected_lon) < 1e-4
+
+    for rec in res.recommendations:
+        assert rec.estimated_distance_to_activity_center_km is not None
+        assert rec.estimated_distance_to_activity_center_km >= 0.0
+        assert rec.road_winding_factor == 1.30
+        assert rec.location_explanation is not None
+        assert "activity center" in rec.location_explanation.lower()
