@@ -380,3 +380,143 @@ def test_unknown_admission_fee_not_treated_as_free():
     }
     explanation = recommender.generate_explanation(attr, breakdown, travel_month=11)
     assert "unverified" in explanation.lower()
+
+
+def test_paid_attraction_can_outrank_free_attraction_when_utility_is_better():
+    """Verify that a paid attraction outranks a free attraction when overall utility (rating, interest, popularity) is higher."""
+    recommender = MCDMRecommender()
+
+    paid_marquee = Attraction(
+        id="paid-marquee-fort",
+        destination_id="hampi",
+        category="heritage",
+        name="Majestic Heritage Palace",
+        description="World-renowned UNESCO monument with restored courtyards.",
+        latitude=15.3350,
+        longitude=76.4600,
+        average_visit_duration=2.5,
+        entry_fee=250.0,  # Paid admission
+        popularity_score=0.98,
+        rating=4.9,
+        seasonal_scores={"11": 1.0},
+        duration_estimation_method="curated_empirical_average",
+    )
+
+    free_minor = Attraction(
+        id="free-minor-park",
+        destination_id="hampi",
+        category="urban",
+        name="Quiet Neighborhood Green",
+        description="Local neighborhood park.",
+        latitude=15.3400,
+        longitude=76.4700,
+        average_visit_duration=1.0,
+        entry_fee=0.0,  # Free admission
+        popularity_score=0.35,
+        rating=3.6,
+        seasonal_scores={"11": 0.6},
+        duration_estimation_method="curated_empirical_average",
+    )
+
+    req = RecommendationRequest(
+        destination_id="hampi",
+        travel_month=11,
+        interests=["heritage"],
+        total_budget=15000.0,
+        number_of_days=2,
+        party_size=2,
+    )
+
+    ranked = recommender.rank_attractions([paid_marquee, free_minor], req)
+    assert len(ranked) == 2
+    # The paid marquee attraction must outrank the free minor attraction
+    assert ranked[0].attraction.id == "paid-marquee-fort"
+    assert ranked[0].composite_score > ranked[1].composite_score
+    assert ranked[0].breakdown.interest_score > ranked[1].breakdown.interest_score
+    assert ranked[0].breakdown.rating_score > ranked[1].breakdown.rating_score
+    assert ranked[0].attraction.entry_fee == 250.0
+    assert ranked[1].attraction.entry_fee == 0.0
+
+
+def test_group_admission_cost_accounting_without_double_counting():
+    """Verify group admission cost equals fee * party_size and is added once without double counting."""
+    from app.algorithms.route_optimizer import IntraDayRouteOptimizer
+    import numpy as np
+
+    optimizer = IntraDayRouteOptimizer()
+
+    attr1 = Attraction(
+        id="test-attr-1",
+        destination_id="coorg",
+        category="nature",
+        name="Scenic Plantation",
+        description="Plantation tour",
+        latitude=12.4200,
+        longitude=75.7300,
+        average_visit_duration=1.5,
+        entry_fee=150.0,
+        popularity_score=0.8,
+        rating=4.5,
+        duration_estimation_method="curated_empirical_average",
+    )
+
+    party_size = 4
+    dist_matrix = np.zeros((1, 1))
+    time_matrix = np.zeros((1, 1))
+
+    is_feasible, items, legs, metrics, violation, o_leg, r_leg = optimizer.simulate_day_timeline(
+        attractions=[attr1],
+        sequence=[0],
+        dist_matrix=dist_matrix,
+        time_matrix=time_matrix,
+        transport_mode="cab",
+        start_time_hours=9.0,
+        max_daily_hours=10.0,
+        party_size=party_size,
+    )
+
+    assert is_feasible is True
+    assert len(items) == 1
+    item = items[0]
+    assert item.item_admission_fee == 150.0
+    assert item.item_group_admission_fee == 150.0 * 4  # ₹600 for group of 4
+    assert metrics["total_adm_cost"] == 600.0
+    # Total cost is exactly admission + transit, admission is not duplicated
+    assert metrics["total_cost"] == round(metrics["total_adm_cost"] + metrics["total_transit_cost"], 2)
+
+
+def test_unverified_fee_does_not_cause_false_rejection():
+    """Verify attractions with unverified/None fee are not eliminated and receive neutral prior."""
+    recommender = MCDMRecommender()
+
+    unverified_attr = Attraction(
+        id="unverified-attr-spot",
+        destination_id="dandeli",
+        category="nature",
+        name="Wild Sanctuary Viewpoint",
+        description="Viewpoint in forest",
+        latitude=15.2500,
+        longitude=74.6300,
+        average_visit_duration=1.0,
+        entry_fee=None,  # Unverified
+        popularity_score=0.75,
+        rating=4.4,
+        seasonal_scores={"11": 0.85},
+        duration_estimation_method="curated_empirical_average",
+    )
+
+    req = RecommendationRequest(
+        destination_id="dandeli",
+        travel_month=11,
+        interests=["nature"],
+        total_budget=10000.0,
+        number_of_days=2,
+        party_size=2,
+    )
+
+    ranked = recommender.rank_attractions([unverified_attr], req)
+    assert len(ranked) == 1
+    assert ranked[0].attraction.id == "unverified-attr-spot"
+    assert ranked[0].attraction.entry_fee is None
+    assert ranked[0].breakdown.budget_score == 0.75
+    assert ranked[0].composite_score > 0.0

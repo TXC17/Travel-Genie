@@ -834,3 +834,123 @@ def test_itinerary_activity_centroid_and_centrality_calculation(db_session):
         assert rec.road_winding_factor == 1.30
         assert rec.location_explanation is not None
         assert "activity center" in rec.location_explanation.lower()
+
+
+def test_accommodation_recommendations_category_moderate(client):
+    """Verify Moderate / Mid-Range category returns comfortable hotels with balanced comfort and location."""
+    payload = {
+        "destination_id": "goa",
+        "check_in_date": "2026-11-01",
+        "check_out_date": "2026-11-04",
+        "party_size": 2,
+        "total_budget": 35000.0,
+        "category": "moderate",
+    }
+    response = client.post("/api/v1/accommodations/recommendations", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["budget_context"]["selected_category"] == "Moderate / Mid-Range"
+    assert len(data["recommendations"]) >= 1
+    for rec in data["recommendations"]:
+        assert rec["category"] == "Moderate / Mid-Range"
+        assert rec["accommodation"]["category"] == "Moderate / Mid-Range"
+        assert rec["price_per_night"] >= 2000.0
+        reason_text = " ".join(rec["match_reasons"])
+        assert "Moderate / Mid-Range" in reason_text
+
+
+def test_price_alone_does_not_determine_ranking(db_session):
+    """Verify that a lower price alone does not guarantee a higher rank over a property with superior rating and central location."""
+    from app.models.accommodation import Accommodation
+
+    # Property 1: Cheaper (₹1,500), but poor rating (2.5) and far away
+    distant_cheap = Accommodation(
+        id="test-cheap-peripheral",
+        destination_id="hampi",
+        name="Far Outpost Lodge",
+        accommodation_type="lodge",
+        description="Far outlying basic lodge.",
+        latitude=15.0000,  # ~35km south of Hampi
+        longitude=76.4600,
+        price_per_night=1500.0,
+        currency="INR",
+        rating=2.5,  # Low rating
+        room_capacity=2,
+        amenities=["Fan"],
+        is_verified=True,
+        provenance={"source": "Regional Benchmark", "rate_tier": "Budget"},
+        is_active=True,
+    )
+
+    # Property 2: Higher tariff (₹3,000), but excellent rating (4.8), rich amenities, right at activity center
+    central_quality = Accommodation(
+        id="test-central-quality",
+        destination_id="hampi",
+        name="Hampi Central Heritage Inn",
+        accommodation_type="hotel",
+        description="Prime location boutique hotel near temples.",
+        latitude=15.3350,  # Directly at activity center
+        longitude=76.4600,
+        price_per_night=3000.0,
+        currency="INR",
+        rating=4.8,  # High rating
+        room_capacity=2,
+        amenities=["WiFi", "AC", "Breakfast", "Swimming Pool", "Restaurant", "Garden"],
+        is_verified=True,
+        provenance={"source": "Regional Benchmark", "rate_tier": "Standard"},
+        is_active=True,
+    )
+    db_session.add_all([distant_cheap, central_quality])
+    db_session.commit()
+
+    # Itinerary activities clustered near Hampi center (15.335, 76.460)
+    itinerary_days = [
+        {
+            "day_number": 1,
+            "items": [
+                {"visit_order": 1, "attraction": {"name": "Virupaksha", "latitude": 15.3353, "longitude": 76.4600}},
+                {"visit_order": 2, "attraction": {"name": "Vittala", "latitude": 15.3400, "longitude": 76.4750}},
+            ],
+        }
+    ]
+
+    req = AccommodationRecommendationRequest(
+        destination_id="hampi",
+        check_in_date="2026-11-01",
+        check_out_date="2026-11-03",
+        party_size=2,
+        total_budget=25000.0,
+        itinerary_days=itinerary_days,
+    )
+    res = AccommodationService.get_recommendations(db_session, req)
+
+    rec_cheap = next((r for r in res.recommendations if r.accommodation.id == "test-cheap-peripheral"), None)
+    rec_quality = next((r for r in res.recommendations if r.accommodation.id == "test-central-quality"), None)
+
+    assert rec_cheap is not None
+    assert rec_quality is not None
+
+    # The quality, centrally located property must outrank the cheaper, poorly rated, distant property
+    assert rec_quality.match_score > rec_cheap.match_score
+    assert rec_quality.location_suitability_score > rec_cheap.location_suitability_score
+    assert rec_quality.estimated_daily_hotel_transit_km < rec_cheap.estimated_daily_hotel_transit_km
+
+
+def test_missing_category_data_handled_without_fabrication(client, db_session):
+    """Verify that an empty or missing category returns an honest empty state without inventing dummy properties."""
+    # Temporarily query a hypothetical destination or filtered category where no records exist
+    payload = {
+        "destination_id": "coorg",
+        "check_in_date": "2026-11-01",
+        "check_out_date": "2026-11-03",
+        "party_size": 2,
+        "category": "ultra_luxury",
+        "max_price_per_night": 5000.0,  # No luxury property exists below ₹5000
+    }
+    response = client.post("/api/v1/accommodations/recommendations", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    # Recommendations should be empty, not populated with fabricated fake hotels
+    assert len(data["recommendations"]) == 0
+    # Must preserve provenance disclosure
+    assert data["budget_context"]["selected_category"] == "Ultra-Luxury"

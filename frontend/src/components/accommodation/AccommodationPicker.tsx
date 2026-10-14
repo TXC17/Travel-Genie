@@ -215,9 +215,9 @@ export const AccommodationPicker: React.FC<AccommodationPickerProps> = ({
               </span>
               {[
                 { id: 'all', label: 'All Stays' },
-                { id: 'ultra_luxury', label: 'Ultra-Luxury' },
                 { id: 'ultra_budget', label: 'Ultra-Budget' },
                 { id: 'moderate', label: 'Moderate / Mid-Range' },
+                { id: 'ultra_luxury', label: 'Ultra-Luxury' },
               ].map((cat) => (
                 <button
                   key={`cat-${cat.id}`}

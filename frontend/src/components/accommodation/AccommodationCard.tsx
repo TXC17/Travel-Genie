@@ -152,6 +152,53 @@ export const AccommodationCard: React.FC<AccommodationCardProps> = ({
           </p>
         </div>
 
+        {/* Tier Presentation Strip (AUDIT-08 Part 7) */}
+        <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-neutral-850/80 border border-slate-100 dark:border-neutral-800 text-xs">
+          <div className="flex items-center gap-2">
+            <span
+              className={`px-2 py-0.5 rounded-md font-black uppercase text-[10px] tracking-wider ${
+                (accommodation.category || item.category) === 'Ultra-Luxury'
+                  ? 'bg-purple-100 dark:bg-purple-950/80 text-purple-900 dark:text-purple-300'
+                  : (accommodation.category || item.category) === 'Ultra-Budget'
+                  ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300'
+                  : 'bg-blue-100 dark:bg-blue-950/80 text-blue-900 dark:text-blue-300'
+              }`}
+            >
+              {accommodation.category || item.category || 'Moderate / Mid-Range'}
+            </span>
+            <span className="font-extrabold text-slate-900 dark:text-white">
+              ₹{accommodation.price_per_night.toLocaleString()}/night
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 text-slate-600 dark:text-neutral-300 text-[11px] font-medium flex-wrap">
+            <span className="flex items-center gap-1">
+              {accommodation.rating !== null && accommodation.rating !== undefined && accommodation.rating > 0 ? (
+                <>
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
+                  <span className="font-bold text-slate-800 dark:text-neutral-200">
+                    Guest rating: {accommodation.rating.toFixed(1)}
+                  </span>
+                </>
+              ) : (
+                <span className="text-slate-500 italic">Guest ratings unavailable</span>
+              )}
+            </span>
+
+            {item.estimated_distance_to_activity_center_km !== undefined && item.estimated_distance_to_activity_center_km !== null ? (
+              <span className="flex items-center gap-1 text-blue-700 dark:text-blue-300 font-bold">
+                <MapPin className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                <span>~{item.estimated_distance_to_activity_center_km} km from activity center</span>
+              </span>
+            ) : item.estimated_daily_hotel_transit_km !== undefined && item.estimated_daily_hotel_transit_km !== null ? (
+              <span className="flex items-center gap-1 text-blue-700 dark:text-blue-300 font-medium">
+                <MapPin className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                <span>~{item.estimated_daily_hotel_transit_km} km/day transit</span>
+              </span>
+            ) : null}
+          </div>
+        </div>
+
         {/* Stay & Room Capacity Metrics Bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
           <div className="p-2 rounded-xl bg-slate-50 dark:bg-neutral-850 border border-slate-100 dark:border-neutral-800 flex flex-col">
